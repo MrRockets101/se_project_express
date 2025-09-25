@@ -6,8 +6,9 @@ const userId = new mongoose.Types.ObjectId("68d59448e0bb1ba442a13af6");
 
 const createItem = (req, res) => {
   const { name, weather, imageURL } = req.body;
+  const owner = req.user._id;
 
-  ClothingItem.create({ name, weather, imageURL })
+  ClothingItem.create({ name, weather, imageURL, owner })
     .then((item) => sendSuccess(res, 201, item, "Item created"))
     .catch((err) => handleError(err, res, "Failed to create item"));
 };
