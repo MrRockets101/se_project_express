@@ -13,11 +13,11 @@ const clothingItemSchema = new mongoose.Schema({
   imageURL: {
     type: String,
     required: true,
-  },
-  validator: {
-    validator: (v) => validator.isURL(v),
-    message: "link is not Valid",
+    validate: {
+      validator: (v) => validator.isURL(v),
+      message: "Link is not valid",
+    },
   },
 });
 
-module.exports = mongoose.model("clothingItems", clothingItemSchema);
+module.exports = mongoose.model("clothingItem", clothingItemSchema);
