@@ -27,8 +27,16 @@ const updateItem = (req, res) => {
     { $set: { imageURL } },
     { new: true, runValidators: true }
   )
-    .orFail()
-    .then((item) => sendSuccess(res, 200, item, "Item updated"))
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item, "Item updated");
+    })
     .catch((err) => handleError(err, res, "Failed to update item"));
 };
 
@@ -36,8 +44,16 @@ const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
   ClothingItem.findByIdAndDelete(itemId)
-    .orFail()
-    .then(() => sendSuccess(res, 204))
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 204);
+    })
     .catch((err) => handleError(err, res, "Failed to delete item"));
 };
 
@@ -47,8 +63,16 @@ const likeItem = (req, res) => {
     { $addToSet: { likes: userId } },
     { new: true }
   )
-    .orFail()
-    .then((item) => sendSuccess(res, 200, item, "Item liked"))
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item, "Item liked");
+    })
     .catch((err) => handleError(err, res, "Failed to like item"));
 };
 
@@ -58,8 +82,16 @@ const unlikeItem = (req, res) => {
     { $pull: { likes: userId } },
     { new: true }
   )
-    .orFail()
-    .then((item) => sendSuccess(res, 200, item, "Item unliked"))
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item, "Item unliked");
+    })
     .catch((err) => handleError(err, res, "Failed to unlike item"));
 };
 

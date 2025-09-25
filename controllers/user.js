@@ -17,8 +17,16 @@ const createUser = (req, res) => {
 const getUser = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
-    .orFail()
-    .then((user) => sendSuccess(res, 200, user, "User found"))
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "User not found",
+        });
+      }
+      sendSuccess(res, 200, user, "User found");
+    })
     .catch((err) => handleError(err, res, "Failed to find user"));
 };
 
