@@ -1,5 +1,3 @@
-// utils/error.js
-
 const handleError = (err, res, context = "Something went wrong") => {
   console.error(`[ERROR] ${err.name}: ${err.message}`);
 

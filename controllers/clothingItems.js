@@ -38,4 +38,33 @@ const deleteItem = (req, res) => {
     .catch((err) => handleError(err, res, "Failed to delete item"));
 };
 
-module.exports = { createItem, getItems, updateItem, deleteItem };
+const likeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail()
+    .then((item) => sendSuccess(res, 200, item, "Item liked"))
+    .catch((err) => handleError(err, res, "Failed to like item"));
+};
+
+const unlikeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail()
+    .then((item) => sendSuccess(res, 200, item, "Item unliked"))
+    .catch((err) => handleError(err, res, "Failed to unlike item"));
+};
+
+module.exports = {
+  createItem,
+  getItems,
+  updateItem,
+  deleteItem,
+  likeItem,
+  unlikeItem,
+};
