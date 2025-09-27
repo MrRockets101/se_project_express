@@ -1,21 +1,22 @@
 const User = require("../models/user");
 const AppError = require("../utils/AppError");
+const { sendSuccess } = require("../utils/error");
 
 const getUsers = async (req, res) => {
   const users = await User.find({});
-  res.status(200).json(users);
+  return sendSuccess(res, 200, users);
 };
 
 const createUser = async (req, res) => {
   const { name, avatar } = req.body;
   const user = await User.create({ name, avatar });
-  res.status(201).json(user);
+  return sendSuccess(res, 201, user);
 };
 
 const getUser = async (req, res) => {
   const user = await User.findById(req.params.userId);
   if (!user) throw new AppError(404, "User not found");
-  res.status(200).json(user);
+  return sendSuccess(res, 200, user);
 };
 
 const updateUser = async (req, res) => {
@@ -26,7 +27,7 @@ const updateUser = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
-  res.status(200).json(user);
+  return sendSuccess(res, 200, user);
 };
 
 const patchUser = async (req, res) => {
@@ -37,13 +38,13 @@ const patchUser = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
-  res.status(200).json(user);
+  return sendSuccess(res, 200, user);
 };
 
 const deleteUser = async (req, res) => {
   const user = await User.findByIdAndDelete(req.params.userId);
   if (!user) throw new AppError(404, "User not found");
-  res.status(204).send();
+  return sendSuccess(res, 204);
 };
 
 module.exports = {

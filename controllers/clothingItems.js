@@ -1,16 +1,17 @@
 const ClothingItem = require("../models/clothingItems");
 const AppError = require("../utils/AppError");
+const { sendSuccess } = require("../utils/error");
 
 const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
   const item = await ClothingItem.create({ name, weather, imageURL, owner });
-  res.status(201).json(item);
+  return sendSuccess(res, 201, item);
 };
 
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
-  res.status(200).json(items);
+  return sendSuccess(res, 200, items);
 };
 
 const updateItem = async (req, res) => {
@@ -21,13 +22,13 @@ const updateItem = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!item) throw new AppError(404, "Item not found");
-  res.status(200).json(item);
+  return sendSuccess(res, 200, item);
 };
 
 const deleteItem = async (req, res) => {
   const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
   if (!item) throw new AppError(404, "Item not found");
-  res.status(204).send();
+  return sendSuccess(res, 204);
 };
 
 const likeItem = async (req, res) => {
@@ -37,7 +38,7 @@ const likeItem = async (req, res) => {
     { new: true }
   );
   if (!item) throw new AppError(404, "Item not found");
-  res.status(200).json(item);
+  return sendSuccess(res, 200, item);
 };
 
 const unlikeItem = async (req, res) => {
@@ -47,7 +48,7 @@ const unlikeItem = async (req, res) => {
     { new: true }
   );
   if (!item) throw new AppError(404, "Item not found");
-  res.status(200).json(item);
+  return sendSuccess(res, 200, item);
 };
 
 const patchItem = async (req, res) => {
@@ -58,7 +59,7 @@ const patchItem = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!item) throw new AppError(404, "Item not found");
-  res.status(200).json(item);
+  return sendSuccess(res, 200, item);
 };
 
 module.exports = {
