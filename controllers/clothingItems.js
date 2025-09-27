@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
 const AppError = require("../utils/AppError");
 const { sendSuccess } = require("../utils/error");
+const validator = require("validator");
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -13,11 +14,15 @@ const createItem = async (req, res) => {
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  const validator = require("validator");
-  if (!validator.isURL(imageURL))
+  if (!validator.isURL(imageURL, { require_protocol: false }))
     throw new AppError(400, "imageURL must be a valid URL");
 
-  const item = await ClothingItem.create({ name, weather, imageURL, owner });
+  const item = await ClothingItem.create({
+    name,
+    weather,
+    imageURL,
+    owner,
+  });
 
   return sendSuccess(res, 201, item, null, true);
 };
@@ -28,17 +33,14 @@ const getItems = async (req, res) => {
 };
 
 const updateItem = async (req, res) => {
-  if (!validateObjectId(req.params.itemId)) {
-    throw new AppError(404, "Item not found");
-  }
+  const { itemId } = req.params;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
   const { imageURL } = req.body;
-  if (!imageURL) {
-    throw new AppError(400, "imageURL is required");
-  }
+  if (!imageURL) throw new AppError(400, "imageURL is required");
 
   const item = await ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+    itemId,
     { $set: { imageURL } },
     { new: true, runValidators: true, context: "query" }
   );
@@ -48,17 +50,15 @@ const updateItem = async (req, res) => {
 };
 
 const patchItem = async (req, res) => {
-  if (!validateObjectId(req.params.itemId)) {
-    throw new AppError(404, "Item not found");
-  }
+  const { itemId } = req.params;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
   const updates = req.body;
-  if (!updates || Object.keys(updates).length === 0) {
+  if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
-  }
 
   const item = await ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+    itemId,
     { $set: updates },
     { new: true, runValidators: true, context: "query" }
   );
@@ -68,22 +68,20 @@ const patchItem = async (req, res) => {
 };
 
 const deleteItem = async (req, res) => {
-  if (!validateObjectId(req.params.itemId)) {
-    throw new AppError(404, "Item not found");
-  }
+  const { itemId } = req.params;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
-  const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
+  const item = await ClothingItem.findByIdAndDelete(itemId);
   if (!item) throw new AppError(404, "Item not found");
   return sendSuccess(res, 204);
 };
 
 const likeItem = async (req, res) => {
-  if (!validateObjectId(req.params.itemId)) {
-    throw new AppError(404, "Item not found");
-  }
+  const { itemId } = req.params;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
   const item = await ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+    itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true }
   );
@@ -93,12 +91,11 @@ const likeItem = async (req, res) => {
 };
 
 const unlikeItem = async (req, res) => {
-  if (!validateObjectId(req.params.itemId)) {
-    throw new AppError(404, "Item not found");
-  }
+  const { itemId } = req.params;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
   const item = await ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+    itemId,
     { $pull: { likes: req.user._id } },
     { new: true }
   );
