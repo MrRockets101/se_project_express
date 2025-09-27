@@ -4,19 +4,14 @@ const validator = require("validator");
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, "The name field is required"],
-    minlength: [2, "Name must be at least 2 characters"],
-    maxlength: [30, "Name cannot exceed 30 characters"],
+    required: true,
+    minlength: 2,
+    maxlength: 30,
   },
   avatar: {
     type: String,
-    required: [true, "The avatar field is required"],
-    validate: {
-      validator(value) {
-        return validator.isURL(value);
-      },
-      message: "You must enter a valid URL",
-    },
+    required: true,
+    validate: validator.isURL,
   },
 });
 
