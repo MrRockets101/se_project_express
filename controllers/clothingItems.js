@@ -3,19 +3,22 @@ const ClothingItem = require("../models/clothingItems");
 const AppError = require("../utils/AppError");
 const { sendSuccess } = require("../utils/error");
 
-// Helper to validate ObjectId
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
 
-  // Basic validation
-  if (!name || !weather || !imageURL) {
-    throw new AppError(400, "name, weather, and imageURL are required");
-  }
+  if (!name) throw new AppError(400, "name is required");
+  if (!weather) throw new AppError(400, "weather is required");
+  if (!imageURL) throw new AppError(400, "imageURL is required");
+
+  const validator = require("validator");
+  if (!validator.isURL(imageURL))
+    throw new AppError(400, "imageURL must be a valid URL");
 
   const item = await ClothingItem.create({ name, weather, imageURL, owner });
+
   return sendSuccess(res, 201, item, null, true);
 };
 
