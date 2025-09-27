@@ -23,7 +23,7 @@ const updateUser = async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.params.userId,
     { name, avatar },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
   res.status(200).json(user);
@@ -34,7 +34,7 @@ const patchUser = async (req, res) => {
   const user = await User.findByIdAndUpdate(
     req.params.userId,
     { $set: updates },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
   res.status(200).json(user);

@@ -18,7 +18,7 @@ const updateItem = async (req, res) => {
   const item = await ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $set: { imageURL } },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true, context: "query" }
   );
   if (!item) throw new AppError(404, "Item not found");
   res.status(200).json(item);
@@ -55,7 +55,7 @@ const patchItem = async (req, res) => {
   const item = await ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $set: updates },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true, context: "query" }
   );
   if (!item) throw new AppError(404, "Item not found");
   res.status(200).json(item);

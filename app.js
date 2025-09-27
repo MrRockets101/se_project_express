@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
 const AppError = require("./utils/AppError");
+const { handleError } = require("./utils/error");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -25,12 +26,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    status: err.status || 500,
-    error: err.name || "InternalServerError",
-    message: err.message || "Something went wrong",
-  });
+  handleError(err, res);
 });
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
