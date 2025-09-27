@@ -6,12 +6,12 @@ const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
   const item = await ClothingItem.create({ name, weather, imageURL, owner });
-  return sendSuccess(res, 201, item);
+  return sendSuccess(res, 201, item, null, true);
 };
 
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
-  return sendSuccess(res, 200, items);
+  return sendSuccess(res, 200, items, null, true);
 };
 
 const updateItem = async (req, res) => {

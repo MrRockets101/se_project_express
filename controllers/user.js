@@ -2,15 +2,15 @@ const User = require("../models/user");
 const AppError = require("../utils/AppError");
 const { sendSuccess } = require("../utils/error");
 
-const getUsers = async (req, res) => {
-  const users = await User.find({});
-  return sendSuccess(res, 200, users);
-};
-
 const createUser = async (req, res) => {
   const { name, avatar } = req.body;
   const user = await User.create({ name, avatar });
-  return sendSuccess(res, 201, user);
+  return sendSuccess(res, 201, user, null, true);
+};
+
+const getUsers = async (req, res) => {
+  const users = await User.find({});
+  return sendSuccess(res, 200, users, null, true);
 };
 
 const getUser = async (req, res) => {

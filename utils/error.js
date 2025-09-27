@@ -78,10 +78,15 @@ const handleError = (err, res, context = "Unknown operation") => {
   return res.status(mappedError.status).json(mappedError);
 };
 
-const sendSuccess = (res, statusCode = 200, data = {}, message) => {
-  if (statusCode === 204) {
-    return res.status(204).send();
-  }
+const sendSuccess = (
+  res,
+  statusCode = 200,
+  data = {},
+  message,
+  raw = false
+) => {
+  if (statusCode === 204) return res.status(204).send();
+  if (raw) return res.status(statusCode).json(data);
 
   return res.status(statusCode).json({
     status: statusCode,
