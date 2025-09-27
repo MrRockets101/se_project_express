@@ -14,27 +14,10 @@ const createItem = async (req, res) => {
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  const validWeathers = ClothingItem.weatherCategories.map((w) =>
-    w.toLowerCase()
-  );
-  const weatherNormalized = weather.toLowerCase();
-  if (!validWeathers.includes(weatherNormalized)) {
-    throw new AppError(
-      400,
-      `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
-    );
-  }
-
-  if (!validator.isURL(imageURL, { require_protocol: true })) {
+  if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
-  }
 
-  const item = await ClothingItem.create({
-    name,
-    weather: weatherNormalized,
-    imageURL,
-    owner,
-  });
+  const item = await ClothingItem.create({ name, weather, imageURL, owner });
 
   return sendSuccess(res, 201, item, null, true);
 };
@@ -82,7 +65,6 @@ const patchItem = async (req, res) => {
       );
   }
 
-  // Optional validation for imageURL
   if (updates.imageURL) {
     if (!validator.isURL(updates.imageURL, { require_protocol: true }))
       throw new AppError(400, "imageURL must be a valid URL with protocol");
