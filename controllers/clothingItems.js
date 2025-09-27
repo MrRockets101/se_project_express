@@ -14,6 +14,12 @@ const getItems = async (req, res) => {
   return sendSuccess(res, 200, items, null, true);
 };
 
+const getItem = async (req, res) => {
+  const item = await ClothingItem.findById(req.params.itemId);
+  if (!item) throw new AppError(404, "Item not found");
+  return sendSuccess(res, 200, item, null, true);
+};
+
 const updateItem = async (req, res) => {
   const { imageURL } = req.body;
   const item = await ClothingItem.findByIdAndUpdate(
@@ -22,7 +28,18 @@ const updateItem = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item);
+  return sendSuccess(res, 200, item, null, true);
+};
+
+const patchItem = async (req, res) => {
+  const updates = req.body;
+  const item = await ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $set: updates },
+    { new: true, runValidators: true, context: "query" }
+  );
+  if (!item) throw new AppError(404, "Item not found");
+  return sendSuccess(res, 200, item, null, true);
 };
 
 const deleteItem = async (req, res) => {
@@ -38,7 +55,7 @@ const likeItem = async (req, res) => {
     { new: true }
   );
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item);
+  return sendSuccess(res, 200, item, null, true); // raw object for test
 };
 
 const unlikeItem = async (req, res) => {
@@ -48,26 +65,16 @@ const unlikeItem = async (req, res) => {
     { new: true }
   );
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item);
-};
-
-const patchItem = async (req, res) => {
-  const updates = req.body;
-  const item = await ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
-    { $set: updates },
-    { new: true, runValidators: true, context: "query" }
-  );
-  if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item);
+  return sendSuccess(res, 200, item, null, true);
 };
 
 module.exports = {
   createItem,
   getItems,
+  getItem,
   updateItem,
+  patchItem,
   deleteItem,
   likeItem,
   unlikeItem,
-  patchItem,
 };
