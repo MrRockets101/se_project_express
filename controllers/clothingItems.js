@@ -10,25 +10,26 @@ const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
 
+  // Required field checks
   if (!name) throw new AppError(400, "name is required");
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
+  // Dynamic enum validation
   const validWeathers = ClothingItem.weatherCategories;
-  if (!validWeathers.includes(weather)) {
+  if (!validWeathers.includes(weather))
     throw new AppError(
       400,
       `weather must be one of: ${validWeathers.join(", ")}`
     );
-  }
 
-  const validator = require("validator");
-  if (!validator.isURL(imageURL, { require_protocol: true })) {
+  // URL validation
+  if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
-  }
 
   const item = await ClothingItem.create({ name, weather, imageURL, owner });
 
+  // Return raw Mongoose object to preserve _id
   return sendSuccess(res, 201, item, null, true);
 };
 
@@ -43,6 +44,9 @@ const updateItem = async (req, res) => {
 
   const { imageURL } = req.body;
   if (!imageURL) throw new AppError(400, "imageURL is required");
+
+  if (!validator.isURL(imageURL, { require_protocol: true }))
+    throw new AppError(400, "imageURL must be a valid URL with protocol");
 
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
@@ -61,6 +65,22 @@ const patchItem = async (req, res) => {
   const updates = req.body;
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
+
+  // Optional validation for weather field
+  if (updates.weather) {
+    const validWeathers = ClothingItem.weatherCategories;
+    if (!validWeathers.includes(updates.weather))
+      throw new AppError(
+        400,
+        `weather must be one of: ${validWeathers.join(", ")}`
+      );
+  }
+
+  // Optional validation for imageURL
+  if (updates.imageURL) {
+    if (!validator.isURL(updates.imageURL, { require_protocol: true }))
+      throw new AppError(400, "imageURL must be a valid URL with protocol");
+  }
 
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
