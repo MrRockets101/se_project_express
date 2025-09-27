@@ -16,7 +16,7 @@ const getUsers = async (req, res) => {
 const getUser = async (req, res) => {
   const user = await User.findById(req.params.userId);
   if (!user) throw new AppError(404, "User not found");
-  return sendSuccess(res, 200, user);
+  return sendSuccess(res, 200, user, null, true);
 };
 
 const updateUser = async (req, res) => {
@@ -27,7 +27,7 @@ const updateUser = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
-  return sendSuccess(res, 200, user);
+  return sendSuccess(res, 200, user, null, true);
 };
 
 const patchUser = async (req, res) => {
@@ -38,7 +38,7 @@ const patchUser = async (req, res) => {
     { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
-  return sendSuccess(res, 200, user);
+  return sendSuccess(res, 200, user, null, true);
 };
 
 const deleteUser = async (req, res) => {
