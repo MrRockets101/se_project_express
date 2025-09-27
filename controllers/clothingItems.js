@@ -10,26 +10,32 @@ const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
 
-  // Required field checks
   if (!name) throw new AppError(400, "name is required");
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  // Dynamic enum validation
-  const validWeathers = ClothingItem.weatherCategories;
-  if (!validWeathers.includes(weather))
+  const validWeathers = ClothingItem.weatherCategories.map((w) =>
+    w.toLowerCase()
+  );
+  const weatherNormalized = weather.toLowerCase();
+  if (!validWeathers.includes(weatherNormalized)) {
     throw new AppError(
       400,
-      `weather must be one of: ${validWeathers.join(", ")}`
+      `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
+  }
 
-  // URL validation
-  if (!validator.isURL(imageURL, { require_protocol: true }))
+  if (!validator.isURL(imageURL, { require_protocol: true })) {
     throw new AppError(400, "imageURL must be a valid URL with protocol");
+  }
 
-  const item = await ClothingItem.create({ name, weather, imageURL, owner });
+  const item = await ClothingItem.create({
+    name,
+    weather: weatherNormalized,
+    imageURL,
+    owner,
+  });
 
-  // Return raw Mongoose object to preserve _id
   return sendSuccess(res, 201, item, null, true);
 };
 
