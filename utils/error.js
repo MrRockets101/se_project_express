@@ -68,3 +68,46 @@ const sendSuccess = (res, statusCode, data = {}, message = "") => {
 };
 
 module.exports = { handleError, sendSuccess };
+
+// dynamic error response
+// const handleError = (err, res, context = "Something went wrong") => {
+//   console.error(`[ERROR] ${err.name}: ${err.message}`);
+
+//   const errorMap = {
+//     ValidationError: {
+//       status: 400,
+//       error: "Bad Request",
+//       message: err.message || "Validation failed",
+//     },
+//     CastError: {
+//       status: 400,
+//       error: "Bad Request",
+//       message: "Invalid ID format",
+//     },
+//     DocumentNotFoundError: {
+//       status: 404,
+//       error: "Not Found",
+//       message: "Requested resource not found",
+//     },
+//     MongoServerError: err.code === 11000
+//       ? {
+//           status: 409,
+//           error: "Conflict",
+//           message: "Duplicate key error",
+//         }
+//       : null,
+//   };
+
+//   const errorResponse = errorMap[err.name];
+
+//   if (errorResponse) {
+//     return res.status(errorResponse.status).json(errorResponse);
+//   }
+
+//   return res.status(500).json({
+//     status: 500,
+//     error: "Internal Server Error",
+//     message: context,
+//     details: err.message,
+//   });
+// };
