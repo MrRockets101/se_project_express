@@ -10,7 +10,7 @@ const {
 
 const createItem = async (req, res) => {
   const { name, weather } = req.body;
-  const imageURL = req.body.imageURL || req.body.imageUrl;
+  const imageURL = req.body.imageURL || req.body.imageUrl; // accept both
   const owner = req.user._id;
 
   if (!name) throw new AppError(400, "name is required");
@@ -78,7 +78,9 @@ const deleteItem = async (req, res) => {
 
   const item = await ClothingItem.findByIdAndDelete(itemId);
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 204);
+
+  // Return deleted item ID as JSON with 200 status
+  return sendSuccess(res, 200, { _id: item._id });
 };
 
 const likeItem = async (req, res) => {
