@@ -7,13 +7,13 @@ const createItem = (req, res) => {
   const owner = req.user._id;
 
   ClothingItem.create({ name, weather, imageURL, owner })
-    .then((item) => sendSuccess(res, 201, item, "Item created"))
+    .then((item) => sendSuccess(res, 201, item))
     .catch((err) => handleError(err, res, "Failed to create item"));
 };
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => sendSuccess(res, 200, items, "Items retrieved"))
+    .then((items) => sendSuccess(res, 200, items))
     .catch((err) => handleError(err, res, "Failed to fetch items"));
 };
 
@@ -34,7 +34,7 @@ const updateItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 200, item, "Item updated");
+      sendSuccess(res, 200, item);
     })
     .catch((err) => handleError(err, res, "Failed to update item"));
 };
@@ -70,7 +70,7 @@ const likeItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 200, item, "Item liked");
+      sendSuccess(res, 200, item);
     })
     .catch((err) => handleError(err, res, "Failed to like item"));
 };
@@ -89,9 +89,31 @@ const unlikeItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 200, item, "Item unliked");
+      sendSuccess(res, 200, item);
     })
     .catch((err) => handleError(err, res, "Failed to unlike item"));
+};
+
+const patchItem = (req, res) => {
+  const { itemId } = req.params;
+  const updates = req.body;
+
+  ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $set: updates },
+    { new: true, runValidators: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res.status(404).json({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item);
+    })
+    .catch((err) => handleError(err, res, "Failed to partially update item"));
 };
 
 module.exports = {
@@ -101,4 +123,5 @@ module.exports = {
   deleteItem,
   likeItem,
   unlikeItem,
+  patchItem,
 };

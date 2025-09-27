@@ -8,22 +8,12 @@ const {
   unlikeItem,
 } = require("../controllers/clothingItems");
 
-// CREATE
-router.post("/", createItem);
-
-// READ
 router.get("/", getItems);
-
-// UPDATE
+router.post("/", createItem);
 router.put("/:itemId", updateItem);
-
-// DELETE
+router.patch("/:itemId", patchItem);
 router.delete("/:itemId", deleteItem);
-
-// LIKE
 router.put("/:itemId/likes", likeItem);
-
-// UNLIKE
 router.delete("/:itemId/likes", unlikeItem);
 
 module.exports = router;
