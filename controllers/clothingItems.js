@@ -6,6 +6,16 @@ const validator = require("validator");
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// Helper to map DB fields to API response
+const mapItemResponse = (item) => ({
+  _id: item._id,
+  name: item.name,
+  weather: item.weather,
+  imageUrl: item.imageURL, // map to lowercase u
+  owner: item.owner,
+  likes: item.likes,
+});
+
 const createItem = async (req, res) => {
   const { name, weather } = req.body;
   const imageURL = req.body.imageURL || req.body.imageUrl; // accept both
@@ -15,40 +25,36 @@ const createItem = async (req, res) => {
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  // Match enum value for weather (case-insensitive)
   const matchedWeather = ClothingItem.weatherCategories.find(
     (w) => w.toLowerCase() === weather.toLowerCase()
   );
-  if (!matchedWeather) {
+  if (!matchedWeather)
     throw new AppError(
       400,
       `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
-  }
 
   if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
 
   const item = await ClothingItem.create({
     name,
-    weather: matchedWeather, // preserves enum case
+    weather: matchedWeather,
     imageURL,
     owner,
   });
 
-  console.log("[DEBUG] Created item:", item); // debug log
-
-  return sendSuccess(res, 201, item, null, true);
+  return sendSuccess(res, 201, mapItemResponse(item), null, true);
 };
 
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
-  return sendSuccess(res, 200, items, null, true);
+  return sendSuccess(res, 200, items.map(mapItemResponse), null, true);
 };
 
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
-  const { imageURL } = req.body;
+  const imageURL = req.body.imageURL || req.body.imageUrl;
 
   if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
   if (!imageURL) throw new AppError(400, "imageURL is required");
@@ -63,18 +69,17 @@ const updateItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 const patchItem = async (req, res) => {
   const { itemId } = req.params;
-  const updates = req.body;
+  const updates = { ...req.body };
 
   if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
-  // Optional: weather field case-insensitive handling
   if (updates.weather) {
     const matchedWeather = ClothingItem.weatherCategories.find(
       (w) => w.toLowerCase() === updates.weather.toLowerCase()
@@ -84,10 +89,9 @@ const patchItem = async (req, res) => {
         400,
         `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
       );
-    updates.weather = matchedWeather; // preserve enum casing
+    updates.weather = matchedWeather;
   }
 
-  // Optional: imageURL field
   if (updates.imageURL || updates.imageUrl) {
     updates.imageURL = updates.imageURL || updates.imageUrl;
     if (!validator.isURL(updates.imageURL, { require_protocol: true }))
@@ -102,7 +106,7 @@ const patchItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 const deleteItem = async (req, res) => {
@@ -127,7 +131,7 @@ const likeItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 const unlikeItem = async (req, res) => {
@@ -142,7 +146,7 @@ const unlikeItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 module.exports = {
