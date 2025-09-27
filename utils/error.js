@@ -1,4 +1,3 @@
-const { sendSuccess } = require("../utils/error");
 const httpStatus = {
   200: "OK",
   201: "Created",
