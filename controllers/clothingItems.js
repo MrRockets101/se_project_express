@@ -14,14 +14,15 @@ const createItem = async (req, res) => {
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  const validWeathers = ClothingItem.weatherCategories;
-  const matchedWeather = validWeathers.find(
+  // Find the enum value that matches user input (case-insensitive)
+  const matchedWeather = ClothingItem.weatherCategories.find(
     (w) => w.toLowerCase() === weather.toLowerCase()
   );
+
   if (!matchedWeather)
     throw new AppError(
       400,
-      `weather must be one of: ${validWeathers.join(", ")}`
+      `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
 
   if (!validator.isURL(imageURL, { require_protocol: true }))
@@ -44,6 +45,20 @@ const getItems = async (req, res) => {
 
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
+
+  if (updates.weather) {
+    const matchedWeather = ClothingItem.weatherCategories.find(
+      (w) => w.toLowerCase() === updates.weather.toLowerCase()
+    );
+
+    if (!matchedWeather)
+      throw new AppError(
+        400,
+        `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
+      );
+
+    updates.weather = matchedWeather;
+  }
   if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
   const { imageURL } = req.body;
