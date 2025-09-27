@@ -3,11 +3,17 @@ const ClothingItem = require("../models/clothingItems");
 const AppError = require("../utils/AppError");
 const { sendSuccess } = require("../utils/error");
 
+// Helper to validate ObjectId
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
+
+  // Basic validation
+  if (!name || !weather || !imageURL) {
+    throw new AppError(400, "name, weather, and imageURL are required");
+  }
 
   const item = await ClothingItem.create({ name, weather, imageURL, owner });
   return sendSuccess(res, 201, item, null, true);
@@ -24,6 +30,10 @@ const updateItem = async (req, res) => {
   }
 
   const { imageURL } = req.body;
+  if (!imageURL) {
+    throw new AppError(400, "imageURL is required");
+  }
+
   const item = await ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $set: { imageURL } },
@@ -40,6 +50,10 @@ const patchItem = async (req, res) => {
   }
 
   const updates = req.body;
+  if (!updates || Object.keys(updates).length === 0) {
+    throw new AppError(400, "No updates provided");
+  }
+
   const item = await ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $set: updates },
