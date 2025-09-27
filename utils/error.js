@@ -85,13 +85,16 @@ const sendSuccess = (
   message,
   raw = false
 ) => {
-  if (statusCode === 204) return res.status(204).send();
+  if (statusCode === 204) {
+    return res.status(204).send();
+  }
+
   if (raw) return res.status(statusCode).json(data);
 
   return res.status(statusCode).json({
     status: statusCode,
     message: message || httpStatus[statusCode] || "Success",
-    data,
+    data: data || {},
   });
 };
 
