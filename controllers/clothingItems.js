@@ -14,10 +14,25 @@ const createItem = async (req, res) => {
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
+  const validWeathers = ClothingItem.weatherCategories;
+  const matchedWeather = validWeathers.find(
+    (w) => w.toLowerCase() === weather.toLowerCase()
+  );
+  if (!matchedWeather)
+    throw new AppError(
+      400,
+      `weather must be one of: ${validWeathers.join(", ")}`
+    );
+
   if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
 
-  const item = await ClothingItem.create({ name, weather, imageURL, owner });
+  const item = await ClothingItem.create({
+    name,
+    weather: matchedWeather,
+    imageURL,
+    owner,
+  });
 
   return sendSuccess(res, 201, item, null, true);
 };
