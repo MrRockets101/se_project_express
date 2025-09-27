@@ -2,8 +2,6 @@ const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
 const { handleError, sendSuccess } = require("../utils/error");
 
-const userId = new mongoose.Types.ObjectId("68d59448e0bb1ba442a13af6");
-
 const createItem = (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
@@ -61,7 +59,7 @@ const deleteItem = (req, res) => {
 const likeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $addToSet: { likes: userId } },
+    { $addToSet: { likes: req.user._id } },
     { new: true }
   )
     .then((item) => {
@@ -80,7 +78,7 @@ const likeItem = (req, res) => {
 const unlikeItem = (req, res) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
-    { $pull: { likes: userId } },
+    { $pull: { likes: req.user._id } },
     { new: true }
   )
     .then((item) => {
