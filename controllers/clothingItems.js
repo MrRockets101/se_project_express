@@ -6,71 +6,57 @@ const validator = require("validator");
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// Helper to map DB fields to API response
+const mapItemResponse = (item) => ({
+  _id: item._id,
+  name: item.name,
+  weather: item.weather,
+  imageUrl: item.imageURL, // map to lowercase u
+  owner: item.owner,
+  likes: item.likes,
+});
+
 const createItem = async (req, res) => {
   const { name, weather } = req.body;
-  let { imageURL, imageUrl } = req.body;
+  const imageURL = req.body.imageURL || req.body.imageUrl; // accept both
+  const owner = req.user._id;
 
-  console.log("[CREATE ITEM] Incoming body:", req.body);
-
-  imageURL = imageURL || imageUrl;
-
-  if (!name) {
-    console.error("[CREATE ITEM] Missing name");
-    throw new AppError(400, "name is required");
-  }
-  if (!weather) {
-    console.error("[CREATE ITEM] Missing weather");
-    throw new AppError(400, "weather is required");
-  }
-  if (!imageURL) {
-    console.error("[CREATE ITEM] Missing imageURL");
-    throw new AppError(400, "imageURL is required");
-  }
+  if (!name) throw new AppError(400, "name is required");
+  if (!weather) throw new AppError(400, "weather is required");
+  if (!imageURL) throw new AppError(400, "imageURL is required");
 
   const matchedWeather = ClothingItem.weatherCategories.find(
     (w) => w.toLowerCase() === weather.toLowerCase()
   );
-
-  if (!matchedWeather) {
-    console.error(
-      "[CREATE ITEM] Invalid weather:",
-      weather,
-      "Allowed:",
-      ClothingItem.weatherCategories
-    );
+  if (!matchedWeather)
     throw new AppError(
       400,
       `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
-  }
 
-  if (!validator.isURL(imageURL, { require_protocol: true })) {
-    console.error("[CREATE ITEM] Invalid imageURL:", imageURL);
+  if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
-  }
 
   const item = await ClothingItem.create({
     name,
     weather: matchedWeather,
     imageURL,
-    owner: req.user._id,
+    owner,
   });
 
-  console.log("[CREATE ITEM] Successfully created:", item);
-
-  return sendSuccess(res, 201, item, null, true);
+  return sendSuccess(res, 201, mapItemResponse(item), null, true);
 };
 
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
-  return sendSuccess(res, 200, items, null, true);
+  return sendSuccess(res, 200, items.map(mapItemResponse), null, true);
 };
 
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+  const imageURL = req.body.imageURL || req.body.imageUrl;
 
-  const { imageURL } = req.body;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
   if (!imageURL) throw new AppError(400, "imageURL is required");
   if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
@@ -82,14 +68,15 @@ const updateItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item, null, true);
+
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 const patchItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+  const updates = { ...req.body };
 
-  const updates = req.body;
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
@@ -105,7 +92,8 @@ const patchItem = async (req, res) => {
     updates.weather = matchedWeather;
   }
 
-  if (updates.imageURL) {
+  if (updates.imageURL || updates.imageUrl) {
+    updates.imageURL = updates.imageURL || updates.imageUrl;
     if (!validator.isURL(updates.imageURL, { require_protocol: true }))
       throw new AppError(400, "imageURL must be a valid URL with protocol");
   }
@@ -117,7 +105,8 @@ const patchItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item, null, true);
+
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 const deleteItem = async (req, res) => {
@@ -126,6 +115,7 @@ const deleteItem = async (req, res) => {
 
   const item = await ClothingItem.findByIdAndDelete(itemId);
   if (!item) throw new AppError(404, "Item not found");
+
   return sendSuccess(res, 204);
 };
 
@@ -140,7 +130,8 @@ const likeItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item, null, true);
+
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 const unlikeItem = async (req, res) => {
@@ -154,7 +145,8 @@ const unlikeItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
-  return sendSuccess(res, 200, item, null, true);
+
+  return sendSuccess(res, 200, mapItemResponse(item), null, true);
 };
 
 module.exports = {
