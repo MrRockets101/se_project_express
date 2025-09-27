@@ -8,55 +8,35 @@ const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const createItem = async (req, res) => {
   const { name, weather } = req.body;
-  let { imageURL, imageUrl } = req.body;
+  const imageURL = req.body.imageURL || req.body.imageUrl; // accept both
+  const owner = req.user._id;
 
-  console.log("[CREATE ITEM] Incoming body:", req.body);
+  if (!name) throw new AppError(400, "name is required");
+  if (!weather) throw new AppError(400, "weather is required");
+  if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  imageURL = imageURL || imageUrl;
-
-  if (!name) {
-    console.error("[CREATE ITEM] Missing name");
-    throw new AppError(400, "name is required");
-  }
-  if (!weather) {
-    console.error("[CREATE ITEM] Missing weather");
-    throw new AppError(400, "weather is required");
-  }
-  if (!imageURL) {
-    console.error("[CREATE ITEM] Missing imageURL");
-    throw new AppError(400, "imageURL is required");
-  }
-
+  // Match enum value for weather (case-insensitive)
   const matchedWeather = ClothingItem.weatherCategories.find(
     (w) => w.toLowerCase() === weather.toLowerCase()
   );
-
   if (!matchedWeather) {
-    console.error(
-      "[CREATE ITEM] Invalid weather:",
-      weather,
-      "Allowed:",
-      ClothingItem.weatherCategories
-    );
     throw new AppError(
       400,
       `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
   }
 
-  if (!validator.isURL(imageURL, { require_protocol: true })) {
-    console.error("[CREATE ITEM] Invalid imageURL:", imageURL);
+  if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
-  }
 
   const item = await ClothingItem.create({
     name,
-    weather: matchedWeather,
+    weather: matchedWeather, // preserves enum case
     imageURL,
-    owner: req.user._id,
+    owner,
   });
 
-  console.log("[CREATE ITEM] Successfully created:", item);
+  console.log("[DEBUG] Created item:", item); // debug log
 
   return sendSuccess(res, 201, item, null, true);
 };
@@ -68,9 +48,9 @@ const getItems = async (req, res) => {
 
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
-
   const { imageURL } = req.body;
+
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
   if (!imageURL) throw new AppError(400, "imageURL is required");
   if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
@@ -82,17 +62,19 @@ const updateItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
+
   return sendSuccess(res, 200, item, null, true);
 };
 
 const patchItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
-
   const updates = req.body;
+
+  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
+  // Optional: weather field case-insensitive handling
   if (updates.weather) {
     const matchedWeather = ClothingItem.weatherCategories.find(
       (w) => w.toLowerCase() === updates.weather.toLowerCase()
@@ -102,10 +84,12 @@ const patchItem = async (req, res) => {
         400,
         `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
       );
-    updates.weather = matchedWeather;
+    updates.weather = matchedWeather; // preserve enum casing
   }
 
-  if (updates.imageURL) {
+  // Optional: imageURL field
+  if (updates.imageURL || updates.imageUrl) {
+    updates.imageURL = updates.imageURL || updates.imageUrl;
     if (!validator.isURL(updates.imageURL, { require_protocol: true }))
       throw new AppError(400, "imageURL must be a valid URL with protocol");
   }
@@ -117,6 +101,7 @@ const patchItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
+
   return sendSuccess(res, 200, item, null, true);
 };
 
@@ -126,6 +111,7 @@ const deleteItem = async (req, res) => {
 
   const item = await ClothingItem.findByIdAndDelete(itemId);
   if (!item) throw new AppError(404, "Item not found");
+
   return sendSuccess(res, 204);
 };
 
@@ -140,6 +126,7 @@ const likeItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
+
   return sendSuccess(res, 200, item, null, true);
 };
 
@@ -154,6 +141,7 @@ const unlikeItem = async (req, res) => {
   );
 
   if (!item) throw new AppError(404, "Item not found");
+
   return sendSuccess(res, 200, item, null, true);
 };
 
