@@ -6,6 +6,7 @@ const validator = require("validator");
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+// CREATE ITEM
 const createItem = async (req, res) => {
   const { name, weather } = req.body;
   const imageURL = req.body.imageURL || req.body.imageUrl;
@@ -34,14 +35,17 @@ const createItem = async (req, res) => {
     owner,
   });
 
-  return sendSuccess(res, 201, item, null, true);
+  return sendSuccess(res, 201, item.toObject());
 };
 
+// GET ITEMS
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
-  return sendSuccess(res, 200, items, null, true);
+  const plainItems = items.map((item) => item.toObject());
+  return sendSuccess(res, 200, plainItems);
 };
 
+// UPDATE ITEM (PUT)
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
   const { imageURL } = req.body;
@@ -59,9 +63,10 @@ const updateItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, item.toObject());
 };
 
+// PATCH ITEM
 const patchItem = async (req, res) => {
   const { itemId } = req.params;
   const updates = req.body;
@@ -70,6 +75,7 @@ const patchItem = async (req, res) => {
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
+  // Optional: weather field case-insensitive handling
   if (updates.weather) {
     const matchedWeather = ClothingItem.weatherCategories.find(
       (w) => w.toLowerCase() === updates.weather.toLowerCase()
@@ -82,6 +88,7 @@ const patchItem = async (req, res) => {
     updates.weather = matchedWeather;
   }
 
+  // Optional: imageURL field
   if (updates.imageURL || updates.imageUrl) {
     updates.imageURL = updates.imageURL || updates.imageUrl;
     if (!validator.isURL(updates.imageURL, { require_protocol: true }))
@@ -96,9 +103,10 @@ const patchItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, item.toObject());
 };
 
+// DELETE ITEM
 const deleteItem = async (req, res) => {
   const { itemId } = req.params;
 
@@ -110,6 +118,7 @@ const deleteItem = async (req, res) => {
   return sendSuccess(res, 204);
 };
 
+// LIKE ITEM
 const likeItem = async (req, res) => {
   const { itemId } = req.params;
 
@@ -123,9 +132,10 @@ const likeItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, item.toObject());
 };
 
+// UNLIKE ITEM
 const unlikeItem = async (req, res) => {
   const { itemId } = req.params;
 
@@ -139,7 +149,7 @@ const unlikeItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, item, null, true);
+  return sendSuccess(res, 200, item.toObject());
 };
 
 module.exports = {
