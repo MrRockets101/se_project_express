@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const asyncHandler = require("../utils/asyncHandler");
 const {
   createItem,
   getItems,
@@ -6,14 +7,15 @@ const {
   deleteItem,
   likeItem,
   unlikeItem,
+  patchItem,
 } = require("../controllers/clothingItems");
 
-router.get("/", getItems);
-router.post("/", createItem);
-router.put("/:itemId", updateItem);
-router.patch("/:itemId", patchItem);
-router.delete("/:itemId", deleteItem);
-router.put("/:itemId/likes", likeItem);
-router.delete("/:itemId/likes", unlikeItem);
+router.get("/", asyncHandler(getItems));
+router.post("/", asyncHandler(createItem));
+router.put("/:itemId", asyncHandler(updateItem));
+router.patch("/:itemId", asyncHandler(patchItem));
+router.delete("/:itemId", asyncHandler(deleteItem));
+router.put("/:itemId/likes", asyncHandler(likeItem));
+router.delete("/:itemId/likes", asyncHandler(unlikeItem));
 
 module.exports = router;

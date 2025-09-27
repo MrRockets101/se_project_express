@@ -1,93 +1,49 @@
 const User = require("../models/user");
-const { handleError, sendSuccess } = require("../utils/error");
+const AppError = require("../utils/AppError");
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => sendSuccess(res, 200, users))
-    .catch((err) => handleError(err, res, "Failed to fetch users"));
+const getUsers = async (req, res) => {
+  const users = await User.find({});
+  res.status(200).json(users);
 };
 
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   const { name, avatar } = req.body;
-  User.create({ name, avatar })
-    .then((user) => sendSuccess(res, 201, user))
-    .catch((err) => handleError(err, res, "Failed to create user"));
+  const user = await User.create({ name, avatar });
+  res.status(201).json(user);
 };
 
-const getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({
-          status: 404,
-          error: "Not Found",
-          message: "User not found",
-        });
-      }
-      sendSuccess(res, 200, user);
-    })
-    .catch((err) => handleError(err, res, "Failed to find user"));
+const getUser = async (req, res) => {
+  const user = await User.findById(req.params.userId);
+  if (!user) throw new AppError(404, "User not found");
+  res.status(200).json(user);
 };
 
-const updateUser = (req, res) => {
-  const { userId } = req.params;
+const updateUser = async (req, res) => {
   const { name, avatar } = req.body;
-
-  User.findByIdAndUpdate(
-    userId,
+  const user = await User.findByIdAndUpdate(
+    req.params.userId,
     { name, avatar },
     { new: true, runValidators: true }
-  )
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({
-          status: 404,
-          error: "Not Found",
-          message: "User not found",
-        });
-      }
-      sendSuccess(res, 200, user);
-    })
-    .catch((err) => handleError(err, res, "Failed to update user"));
+  );
+  if (!user) throw new AppError(404, "User not found");
+  res.status(200).json(user);
 };
 
-const patchUser = (req, res) => {
-  const { userId } = req.params;
+const patchUser = async (req, res) => {
   const updates = req.body;
-
-  User.findByIdAndUpdate(
-    userId,
+  const user = await User.findByIdAndUpdate(
+    req.params.userId,
     { $set: updates },
     { new: true, runValidators: true }
-  )
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({
-          status: 404,
-          error: "Not Found",
-          message: "User not found",
-        });
-      }
-      sendSuccess(res, 200, user);
-    })
-    .catch((err) => handleError(err, res, "Failed to partially update user"));
+  );
+  if (!user) throw new AppError(404, "User not found");
+  res.status(200).json(user);
 };
 
-const deleteUser = (req, res) => {
-  const { userId } = req.params;
-  User.findByIdAndDelete(userId)
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({
-          status: 404,
-          error: "Not Found",
-          message: "User not found",
-        });
-      }
-      sendSuccess(res, 204);
-    })
-    .catch((err) => handleError(err, res, "Failed to delete user"));
+const deleteUser = async (req, res) => {
+  const user = await User.findByIdAndDelete(req.params.userId);
+  if (!user) throw new AppError(404, "User not found");
+  res.status(204).send();
 };
 
 module.exports = {

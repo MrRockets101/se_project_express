@@ -1,24 +1,40 @@
+const httpStatus = {
+  200: "OK",
+  201: "Created",
+  204: "No Content",
+  400: "Bad Request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not Found",
+  409: "Conflict",
+  422: "Unprocessable Entity",
+  500: "Internal Server Error",
+};
+
 const errorMap = {
-  ValidationError: {
+  ValidationError: (err) => ({
     status: 400,
-    error: "Bad Request",
-    message: (err) => err.message || "Validation failed",
-  },
-  CastError: {
+    error: httpStatus[400],
+    message: err.message || "Validation failed",
+  }),
+
+  CastError: () => ({
     status: 400,
-    error: "Bad Request",
-    message: () => "Invalid ID format",
-  },
-  DocumentNotFoundError: {
+    error: httpStatus[400],
+    message: "Invalid ID format",
+  }),
+
+  DocumentNotFoundError: () => ({
     status: 404,
-    error: "Not Found",
-    message: () => "Requested resource not found",
-  },
+    error: httpStatus[404],
+    message: "Requested resource not found",
+  }),
+
   MongoServerError: (err) => {
     if (err.code === 11000) {
       return {
         status: 409,
-        error: "Conflict",
+        error: httpStatus[409],
         message: "Duplicate key error: Resource already exists",
       };
     }
@@ -26,51 +42,52 @@ const errorMap = {
   },
 };
 
-const handleError = (err, res, context = "Something went wrong") => {
-  console.error(`[ERROR] ${err.name}: ${err.message}`);
+class AppError extends Error {
+  constructor(status, message, error = httpStatus[status] || "Error") {
+    super(message);
+    this.status = status;
+    this.error = error;
+  }
+}
 
-  let errorResponse;
+const handleError = (err, res, context = "Unknown operation") => {
+  console.error(`[ERROR] ${context}: ${err.name} - ${err.message}`);
+
+  let mappedError;
 
   if (errorMap[err.name]) {
-    if (typeof errorMap[err.name] === "function") {
-      errorResponse = errorMap[err.name](err);
-    } else {
-      errorResponse = {
-        status: errorMap[err.name].status,
-        error: errorMap[err.name].error,
-        message: errorMap[err.name].message(err),
-      };
-    }
+    mappedError = errorMap[err.name](err, context);
   }
 
-  if (!errorResponse) {
-    errorResponse = {
-      status: 500,
-      error: "Internal Server Error",
-      message: context,
-      details: process.env.NODE_ENV === "development" ? err.message : undefined,
+  if (!mappedError && err instanceof AppError) {
+    mappedError = {
+      status: err.status,
+      error: err.error,
+      message: err.message,
     };
   }
 
-  return res.status(errorResponse.status).json(errorResponse);
+  if (!mappedError) {
+    mappedError = {
+      status: err.status || 500,
+      error: err.error || httpStatus[500],
+      message: err.message || "Unexpected error occurred",
+    };
+  }
+
+  return res.status(mappedError.status).json(mappedError);
 };
 
-const sendSuccess = (res, statusCode = 200, data = {}) => {
-  const statusMap = {
-    200: "OK",
-    201: "Created",
-    204: "No Content",
-  };
-
+const sendSuccess = (res, statusCode = 200, data = {}, message) => {
   if (statusCode === 204) {
     return res.status(204).send();
   }
 
   return res.status(statusCode).json({
     status: statusCode,
-    message: statusMap[statusCode] || "Success",
+    message: message || httpStatus[statusCode] || "Success",
     data,
   });
 };
 
-module.exports = { handleError, sendSuccess };
+module.exports = { handleError, sendSuccess, AppError, httpStatus };

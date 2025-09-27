@@ -1,119 +1,64 @@
-const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
-const { handleError, sendSuccess } = require("../utils/error");
+const AppError = require("../utils/AppError");
 
-const createItem = (req, res) => {
+const createItem = async (req, res) => {
   const { name, weather, imageURL } = req.body;
   const owner = req.user._id;
-
-  ClothingItem.create({ name, weather, imageURL, owner })
-    .then((item) => sendSuccess(res, 201, item))
-    .catch((err) => handleError(err, res, "Failed to create item"));
+  const item = await ClothingItem.create({ name, weather, imageURL, owner });
+  res.status(201).json(item);
 };
 
-const getItems = (req, res) => {
-  ClothingItem.find({})
-    .then((items) => sendSuccess(res, 200, items))
-    .catch((err) => handleError(err, res, "Failed to fetch items"));
+const getItems = async (req, res) => {
+  const items = await ClothingItem.find({});
+  res.status(200).json(items);
 };
 
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
+const updateItem = async (req, res) => {
   const { imageURL } = req.body;
-
-  ClothingItem.findByIdAndUpdate(
-    itemId,
+  const item = await ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
     { $set: { imageURL } },
     { new: true, runValidators: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(404).send({
-          status: 404,
-          error: "Not Found",
-          message: "Item not found",
-        });
-      }
-      sendSuccess(res, 200, item);
-    })
-    .catch((err) => handleError(err, res, "Failed to update item"));
+  );
+  if (!item) throw new AppError(404, "Item not found");
+  res.status(200).json(item);
 };
 
-const deleteItem = (req, res) => {
-  const { itemId } = req.params;
-
-  ClothingItem.findByIdAndDelete(itemId)
-    .then((item) => {
-      if (!item) {
-        return res.status(404).send({
-          status: 404,
-          error: "Not Found",
-          message: "Item not found",
-        });
-      }
-      sendSuccess(res, 204);
-    })
-    .catch((err) => handleError(err, res, "Failed to delete item"));
+const deleteItem = async (req, res) => {
+  const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
+  if (!item) throw new AppError(404, "Item not found");
+  res.status(204).send();
 };
 
-const likeItem = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
+const likeItem = async (req, res) => {
+  const item = await ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(404).send({
-          status: 404,
-          error: "Not Found",
-          message: "Item not found",
-        });
-      }
-      sendSuccess(res, 200, item);
-    })
-    .catch((err) => handleError(err, res, "Failed to like item"));
+  );
+  if (!item) throw new AppError(404, "Item not found");
+  res.status(200).json(item);
 };
 
-const unlikeItem = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
+const unlikeItem = async (req, res) => {
+  const item = await ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
     { new: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(404).send({
-          status: 404,
-          error: "Not Found",
-          message: "Item not found",
-        });
-      }
-      sendSuccess(res, 200, item);
-    })
-    .catch((err) => handleError(err, res, "Failed to unlike item"));
+  );
+  if (!item) throw new AppError(404, "Item not found");
+  res.status(200).json(item);
 };
 
-const patchItem = (req, res) => {
-  const { itemId } = req.params;
+const patchItem = async (req, res) => {
   const updates = req.body;
-
-  ClothingItem.findByIdAndUpdate(
-    itemId,
+  const item = await ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
     { $set: updates },
     { new: true, runValidators: true }
-  )
-    .then((item) => {
-      if (!item) {
-        return res.status(404).json({
-          status: 404,
-          error: "Not Found",
-          message: "Item not found",
-        });
-      }
-      sendSuccess(res, 200, item);
-    })
-    .catch((err) => handleError(err, res, "Failed to partially update item"));
+  );
+  if (!item) throw new AppError(404, "Item not found");
+  res.status(200).json(item);
 };
 
 module.exports = {
