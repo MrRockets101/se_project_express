@@ -7,31 +7,56 @@ const validator = require("validator");
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 const createItem = async (req, res) => {
-  const { name, weather, imageURL } = req.body;
-  const owner = req.user._id;
+  const { name, weather } = req.body;
+  let { imageURL, imageUrl } = req.body;
 
-  if (!name) throw new AppError(400, "name is required");
-  if (!weather) throw new AppError(400, "weather is required");
-  if (!imageURL) throw new AppError(400, "imageURL is required");
+  console.log("[CREATE ITEM] Incoming body:", req.body);
+
+  imageURL = imageURL || imageUrl;
+
+  if (!name) {
+    console.error("[CREATE ITEM] Missing name");
+    throw new AppError(400, "name is required");
+  }
+  if (!weather) {
+    console.error("[CREATE ITEM] Missing weather");
+    throw new AppError(400, "weather is required");
+  }
+  if (!imageURL) {
+    console.error("[CREATE ITEM] Missing imageURL");
+    throw new AppError(400, "imageURL is required");
+  }
 
   const matchedWeather = ClothingItem.weatherCategories.find(
     (w) => w.toLowerCase() === weather.toLowerCase()
   );
-  if (!matchedWeather)
+
+  if (!matchedWeather) {
+    console.error(
+      "[CREATE ITEM] Invalid weather:",
+      weather,
+      "Allowed:",
+      ClothingItem.weatherCategories
+    );
     throw new AppError(
       400,
       `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
+  }
 
-  if (!validator.isURL(imageURL, { require_protocol: true }))
+  if (!validator.isURL(imageURL, { require_protocol: true })) {
+    console.error("[CREATE ITEM] Invalid imageURL:", imageURL);
     throw new AppError(400, "imageURL must be a valid URL with protocol");
+  }
 
   const item = await ClothingItem.create({
     name,
     weather: matchedWeather,
     imageURL,
-    owner,
+    owner: req.user._id,
   });
+
+  console.log("[CREATE ITEM] Successfully created:", item);
 
   return sendSuccess(res, 201, item, null, true);
 };
