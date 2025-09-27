@@ -14,11 +14,9 @@ const createItem = async (req, res) => {
   if (!weather) throw new AppError(400, "weather is required");
   if (!imageURL) throw new AppError(400, "imageURL is required");
 
-  // Find the enum value that matches user input (case-insensitive)
   const matchedWeather = ClothingItem.weatherCategories.find(
     (w) => w.toLowerCase() === weather.toLowerCase()
   );
-
   if (!matchedWeather)
     throw new AppError(
       400,
@@ -45,25 +43,10 @@ const getItems = async (req, res) => {
 
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
-
-  if (updates.weather) {
-    const matchedWeather = ClothingItem.weatherCategories.find(
-      (w) => w.toLowerCase() === updates.weather.toLowerCase()
-    );
-
-    if (!matchedWeather)
-      throw new AppError(
-        400,
-        `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
-      );
-
-    updates.weather = matchedWeather;
-  }
   if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
 
   const { imageURL } = req.body;
   if (!imageURL) throw new AppError(400, "imageURL is required");
-
   if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
 
@@ -85,14 +68,16 @@ const patchItem = async (req, res) => {
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
-  // Optional validation for weather field
   if (updates.weather) {
-    const validWeathers = ClothingItem.weatherCategories;
-    if (!validWeathers.includes(updates.weather))
+    const matchedWeather = ClothingItem.weatherCategories.find(
+      (w) => w.toLowerCase() === updates.weather.toLowerCase()
+    );
+    if (!matchedWeather)
       throw new AppError(
         400,
-        `weather must be one of: ${validWeathers.join(", ")}`
+        `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
       );
+    updates.weather = matchedWeather;
   }
 
   if (updates.imageURL) {
