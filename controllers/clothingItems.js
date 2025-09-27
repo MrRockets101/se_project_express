@@ -6,19 +6,9 @@ const validator = require("validator");
 
 const validateObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
-// Helper to map DB fields to API response
-const mapItemResponse = (item) => ({
-  _id: item._id,
-  name: item.name,
-  weather: item.weather,
-  imageUrl: item.imageURL, // map to lowercase u
-  owner: item.owner,
-  likes: item.likes,
-});
-
 const createItem = async (req, res) => {
   const { name, weather } = req.body;
-  const imageURL = req.body.imageURL || req.body.imageUrl; // accept both
+  const imageURL = req.body.imageURL || req.body.imageUrl;
   const owner = req.user._id;
 
   if (!name) throw new AppError(400, "name is required");
@@ -44,19 +34,19 @@ const createItem = async (req, res) => {
     owner,
   });
 
-  return sendSuccess(res, 201, mapItemResponse(item), null, true);
+  return sendSuccess(res, 201, item, null, true);
 };
 
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
-  return sendSuccess(res, 200, items.map(mapItemResponse), null, true);
+  return sendSuccess(res, 200, items, null, true);
 };
 
 const updateItem = async (req, res) => {
   const { itemId } = req.params;
-  const imageURL = req.body.imageURL || req.body.imageUrl;
+  const { imageURL } = req.body;
 
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+  if (!validateObjectId(itemId)) throw new AppError(400, "Invalid item ID");
   if (!imageURL) throw new AppError(400, "imageURL is required");
   if (!validator.isURL(imageURL, { require_protocol: true }))
     throw new AppError(400, "imageURL must be a valid URL with protocol");
@@ -69,14 +59,14 @@ const updateItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, mapItemResponse(item), null, true);
+  return sendSuccess(res, 200, item, null, true);
 };
 
 const patchItem = async (req, res) => {
   const { itemId } = req.params;
-  const updates = { ...req.body };
+  const updates = req.body;
 
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+  if (!validateObjectId(itemId)) throw new AppError(400, "Invalid item ID");
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
@@ -106,12 +96,13 @@ const patchItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, mapItemResponse(item), null, true);
+  return sendSuccess(res, 200, item, null, true);
 };
 
 const deleteItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+
+  if (!validateObjectId(itemId)) throw new AppError(400, "Invalid item ID");
 
   const item = await ClothingItem.findByIdAndDelete(itemId);
   if (!item) throw new AppError(404, "Item not found");
@@ -121,7 +112,8 @@ const deleteItem = async (req, res) => {
 
 const likeItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+
+  if (!validateObjectId(itemId)) throw new AppError(400, "Invalid item ID");
 
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
@@ -131,12 +123,13 @@ const likeItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, mapItemResponse(item), null, true);
+  return sendSuccess(res, 200, item, null, true);
 };
 
 const unlikeItem = async (req, res) => {
   const { itemId } = req.params;
-  if (!validateObjectId(itemId)) throw new AppError(404, "Item not found");
+
+  if (!validateObjectId(itemId)) throw new AppError(400, "Invalid item ID");
 
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
@@ -146,7 +139,7 @@ const unlikeItem = async (req, res) => {
 
   if (!item) throw new AppError(404, "Item not found");
 
-  return sendSuccess(res, 200, mapItemResponse(item), null, true);
+  return sendSuccess(res, 200, item, null, true);
 };
 
 module.exports = {
