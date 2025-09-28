@@ -48,11 +48,19 @@ const validateParam = (paramName = "id", options = { allowNull: false }) => {
   return (req, res, next) => {
     try {
       const value = req.params[paramName];
-      if (options.allowNull && (!value || value === "null")) return next();
+
+      // Treat "null" string as null
+      if (typeof value === "string" && value.toLowerCase() === "null") {
+        req.params[paramName] = null;
+      }
+
+      if (options.allowNull && (!value || value === null)) return next();
+
+      // Validate ObjectId
       validateObjectId(value, paramName);
       next();
     } catch (err) {
-      next(err);
+      next(err); // Pass AppError to handleError
     }
   };
 };
