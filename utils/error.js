@@ -41,32 +41,32 @@ const handleError = (err, res, context = "Unknown operation") => {
     mappedError = errorMap[err.name](err);
   }
 
-  // If Mongoose ValidationError, aggregate messages
+  // Mongoose ValidationError fix: combine all field messages
   if (!mappedError && err.name === "ValidationError") {
     const messages = Object.values(err.errors)
       .map((e) => e.message)
       .join("; ");
     mappedError = {
       status: 400,
-      error: httpStatus[400],
+      error: "Bad Request",
       message: messages || "Validation failed",
     };
   }
 
-  // If AppError
+  // AppError fallback
   if (!mappedError && (err instanceof AppError || err.name === "AppError")) {
     mappedError = {
       status: err.status || 500,
-      error: err.error || httpStatus[err.status] || "Error",
+      error: err.error || "Error",
       message: err.message,
     };
   }
 
-  // Fallback
+  // Last-resort fallback
   if (!mappedError) {
     mappedError = {
       status: 500,
-      error: httpStatus[500],
+      error: "Internal Server Error",
       message: err.message || "Unexpected error occurred",
     };
   }
