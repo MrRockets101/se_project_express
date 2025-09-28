@@ -31,19 +31,14 @@ const errorMap = {
   },
 };
 
-const handleError = (err, res, context = "Unknown operation") => {
-  console.error(`[ERROR] ${context}: ${err.name} - ${err.message}`);
+const handleError = (err, res) => {
+  console.error(`[ERROR] ${err.name} - ${err.message}`);
 
   let mappedError;
 
-  // Map known error types
-  if (errorMap[err.name]) {
-    mappedError = errorMap[err.name](err);
-  }
-
-  // Mongoose ValidationError fix: combine all field messages
-  if (!mappedError && err.name === "ValidationError") {
-    const messages = Object.values(err.errors)
+  // Mongoose ValidationError
+  if (err.name === "ValidationError") {
+    const messages = Object.values(err.errors || {})
       .map((e) => e.message)
       .join("; ");
     mappedError = {
@@ -53,21 +48,30 @@ const handleError = (err, res, context = "Unknown operation") => {
     };
   }
 
-  // AppError fallback
-  if (!mappedError && (err instanceof AppError || err.name === "AppError")) {
+  // MongoServerError (e.g., duplicate key)
+  else if (err.name === "MongoServerError" && err.code === 11000) {
     mappedError = {
-      status: err.status || 500,
-      error: err.error || "Error",
+      status: 409,
+      error: "Conflict",
+      message: "Duplicate key error: Resource already exists",
+    };
+  }
+
+  // Custom AppError
+  else if (err instanceof AppError) {
+    mappedError = {
+      status: err.status,
+      error: err.error,
       message: err.message,
     };
   }
 
-  // Last-resort fallback
-  if (!mappedError) {
+  // Fallback
+  else {
     mappedError = {
       status: 500,
       error: "Internal Server Error",
-      message: err.message || "Unexpected error occurred",
+      message: err.message || "Unexpected error",
     };
   }
 
