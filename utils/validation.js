@@ -10,57 +10,63 @@ const validateObjectId = (id, field = "ID") => {
 
 const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
   return (req, res, next) => {
-    const body = req.body;
-    if (!body || typeof body !== "object") {
-      return next(new AppError(400, "Request body must be a valid object"));
-    }
-
-    for (const field of required) {
-      if (
-        body[field] === undefined ||
-        body[field] === null ||
-        body[field] === ""
-      ) {
-        return next(new AppError(400, `${field} is required`));
-      }
-    }
-
-    const allFields = [...required, ...optional];
     try {
+      const body = req.body;
+      if (!body || typeof body !== "object") {
+        return next(new AppError(400, "Request body must be a valid object"));
+      }
+
+      for (const field of required) {
+        if (
+          body[field] === undefined ||
+          body[field] === null ||
+          body[field] === ""
+        ) {
+          return next(new AppError(400, `${field} is required`));
+        }
+      }
+
+      const allFields = [...required, ...optional];
+
       for (const field of allFields) {
         if (
           body[field] !== undefined &&
           body[field] !== null &&
           custom[field]
         ) {
-          body[field] = custom[field](body[field]);
+          body[field] = custom[field](body[field]); // make sure custom validators throw AppError
         }
       }
-    } catch (err) {
-      return next(err);
-    }
 
-    next();
+      next();
+    } catch (err) {
+      next(err); // <--- always call next here
+    }
   };
 };
 
 const validateParam = (paramName = "id", options = { allowNull: false }) => {
   return (req, res, next) => {
     try {
-      const value = req.params[paramName];
+      let value = req.params[paramName];
 
-      // Treat "null" string as null
       if (typeof value === "string" && value.toLowerCase() === "null") {
+        value = null;
         req.params[paramName] = null;
       }
 
-      if (options.allowNull && (!value || value === null)) return next();
+      if (options.allowNull && (!value || value === null)) {
+        return next();
+      }
 
-      // Validate ObjectId
-      validateObjectId(value, paramName);
+      // validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(value)) {
+        return next(new AppError(400, `Invalid ${paramName}`));
+      }
+
       next();
     } catch (err) {
-      next(err); // Pass AppError to handleError
+      next(err); // <--- always call next here
     }
   };
 };
