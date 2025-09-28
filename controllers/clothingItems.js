@@ -3,10 +3,10 @@ const ClothingItem = require("../models/clothingItems");
 const { handleError, sendSuccess } = require("../utils/error");
 
 const createItem = (req, res) => {
-  const { name, weather, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
 
-  ClothingItem.create({ name, weather, imageURL, owner })
+  ClothingItem.create({ name, weather, imageUrl, owner })
     .then((item) => sendSuccess(res, 201, item, "Item created"))
     .catch((err) => handleError(err, res, "Failed to create item"));
 };
@@ -19,11 +19,11 @@ const getItems = (req, res) => {
 
 const updateItem = (req, res) => {
   const { itemId } = req.params;
-  const { imageURL } = req.body;
+  const { imageUrl } = req.body;
 
   ClothingItem.findByIdAndUpdate(
     itemId,
-    { $set: { imageURL } },
+    { $set: { imageUrl } },
     { new: true, runValidators: true }
   )
     .then((item) => {

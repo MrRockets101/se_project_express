@@ -57,14 +57,10 @@ const sendSuccess = (res, statusCode, data = {}, message = "") => {
   }
 
   if (statusCode === 204) {
-    return res.status(204).json();
+    return res.status(200).json({});
   }
 
-  return res.status(statusCode).json({
-    status: statusCode,
-    message: message || statusText,
-    data,
-  });
+  return res.status(statusCode).json(data);
 };
 
 module.exports = { handleError, sendSuccess };
