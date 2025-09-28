@@ -8,54 +8,49 @@ const validateObjectId = (id, field = "ID") => {
   }
 };
 
-// Validate request body
 const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
   return (req, res, next) => {
+    const body = req.body;
+    if (!body || typeof body !== "object") {
+      return next(new AppError(400, "Request body must be a valid object"));
+    }
+
+    // check required fields
+    for (const field of required) {
+      if (
+        body[field] === undefined ||
+        body[field] === null ||
+        body[field] === ""
+      ) {
+        return next(new AppError(400, `${field} is required`));
+      }
+    }
+
+    const allFields = [...required, ...optional];
     try {
-      const body = req.body;
-      if (!body || typeof body !== "object") {
-        return next(new AppError(400, "Request body must be a valid object"));
-      }
-
-      for (const field of required) {
-        if (
-          body[field] === undefined ||
-          body[field] === null ||
-          body[field] === ""
-        ) {
-          return next(new AppError(400, `${field} is required`));
-        }
-      }
-
-      const allFields = [...required, ...optional];
-
       for (const field of allFields) {
         if (
           body[field] !== undefined &&
           body[field] !== null &&
           custom[field]
         ) {
-          try {
-            body[field] = custom[field](body[field]);
-          } catch (err) {
-            return next(err);
-          }
+          body[field] = custom[field](body[field]); // custom validators throw AppError
         }
       }
-
-      next();
     } catch (err) {
-      next(err);
+      return next(err); // <- ensure validation errors go to error middleware
     }
+
+    next();
   };
 };
 
-// Validate URL params (ObjectId)
 const validateParam = (paramName = "id", options = { allowNull: false }) => {
   return (req, res, next) => {
     try {
       let value = req.params[paramName];
 
+      // treat "null" string as null
       if (typeof value === "string" && value.toLowerCase() === "null") {
         value = null;
         req.params[paramName] = null;

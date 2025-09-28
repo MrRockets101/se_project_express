@@ -1,8 +1,12 @@
 const User = require("../models/user");
 const { AppError, sendSuccess } = require("../utils/error");
+const { validateObjectId } = require("../utils/validation");
 
 const createUser = async (req, res, next) => {
   try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(new AppError(400, "Request body is required"));
+    }
     const user = await User.create(req.body);
     return sendSuccess(res, 201, user, null, true);
   } catch (err) {
@@ -21,6 +25,7 @@ const getUsers = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
   try {
+    validateObjectId(req.params.userId, "userId");
     const user = await User.findById(req.params.userId);
     if (!user) return next(new AppError(404, "User not found"));
     return sendSuccess(res, 200, user, null, true);
@@ -48,11 +53,7 @@ const patchUser = async (req, res, next) => {
     const user = await User.findByIdAndUpdate(
       req.params.userId,
       { $set: req.body },
-      {
-        new: true,
-        runValidators: true,
-        context: "query",
-      }
+      { new: true, runValidators: true, context: "query" }
     );
     if (!user) return next(new AppError(404, "User not found"));
     return sendSuccess(res, 200, user, null, true);

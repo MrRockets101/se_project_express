@@ -6,11 +6,7 @@ const handleUpdate = async (itemId, updates = {}) => {
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
     { $set: updates },
-    {
-      new: true,
-      runValidators: true,
-      context: "query",
-    }
+    { new: true, runValidators: true, context: "query" }
   );
   if (!item) throw new AppError(404, "Item not found");
   return item;
@@ -39,8 +35,12 @@ const getItems = async (req, res, next) => {
 
 const getItem = async (req, res, next) => {
   try {
-    const item = await ClothingItem.findById(req.params.itemId);
+    const { itemId } = req.params;
+    if (!itemId) return next(new AppError(404, "Item not found"));
+
+    const item = await ClothingItem.findById(itemId);
     if (!item) return next(new AppError(404, "Item not found"));
+
     return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
@@ -69,8 +69,15 @@ const patchItem = async (req, res, next) => {
 
 const deleteItem = async (req, res, next) => {
   try {
-    const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
+    const { itemId } = req.params;
+    if (!itemId)
+      return sendSuccess(res, 200, {
+        message: "Item already deleted or missing",
+      });
+
+    const item = await ClothingItem.findByIdAndDelete(itemId);
     if (!item) return next(new AppError(404, "Item not found"));
+
     return sendSuccess(res, 200, { _id: item._id });
   } catch (err) {
     next(err);
