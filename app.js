@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  return handleError(err, res);
+  return handleError(err, req, res, next);
 });
 
 app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

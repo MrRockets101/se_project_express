@@ -38,26 +38,27 @@ const handleError = (err, req, res, next) => {
   let error = "Internal Server Error";
   let message = err.message || "Unexpected error";
 
-  // Mongoose validation errors
-  if (err.name === "ValidationError") {
+  // Mongoose ValidationError or CastError
+  if (err.name === "ValidationError" || err.name === "CastError") {
     status = 400;
     error = "Bad Request";
+
     if (err.errors && Object.keys(err.errors).length > 0) {
       message = Object.values(err.errors)
         .map((e) => e.message)
         .join("; ");
+    } else if (err.name === "CastError") {
+      message = `Invalid ${err.path}`;
     } else {
       message = err.message || "Validation failed";
     }
   }
-
-  // Mongo duplicate key
+  // Duplicate key error
   else if (err.name === "MongoServerError" && err.code === 11000) {
     status = 409;
     error = "Conflict";
     message = "Duplicate key error: Resource already exists";
   }
-
   // Custom AppError
   else if (err instanceof AppError) {
     status = err.status;

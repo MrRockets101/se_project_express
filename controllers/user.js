@@ -3,6 +3,10 @@ const { AppError, sendSuccess } = require("../utils/error");
 const { validateObjectId } = require("../utils/validation");
 
 const createUser = async (req, res) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    throw new AppError(400, "Request body is required");
+  }
+
   const user = await User.create(req.body);
   return sendSuccess(res, 201, user, null, true);
 };
