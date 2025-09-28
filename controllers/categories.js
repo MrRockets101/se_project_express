@@ -8,7 +8,7 @@ const createCategory = async (req, res, next) => {
       throw new AppError(400, "Request body is required");
     }
     const category = await WeatherCategory.create(req.body);
-    return sendSuccess(res, 201, category, null, true);
+    return sendSuccess(res, 201, category, null, false);
   } catch (err) {
     next(err);
   }
@@ -17,7 +17,7 @@ const createCategory = async (req, res, next) => {
 const getCategories = async (req, res, next) => {
   try {
     const categories = await WeatherCategory.find({});
-    return sendSuccess(res, 200, categories, null, true);
+    return sendSuccess(res, 200, categories, null, false);
   } catch (err) {
     next(err);
   }

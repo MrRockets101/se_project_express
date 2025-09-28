@@ -8,7 +8,7 @@ const createUser = async (req, res, next) => {
       throw new AppError(400, "Request body is required");
 
     const user = await User.create(req.body);
-    return sendSuccess(res, 201, user, null, true);
+    return sendSuccess(res, 201, user, null, false);
   } catch (err) {
     next(err);
   }
@@ -17,7 +17,7 @@ const createUser = async (req, res, next) => {
 const getUsers = async (req, res, next) => {
   try {
     const users = await User.find({});
-    return sendSuccess(res, 200, users, null, true);
+    return sendSuccess(res, 200, users, null, false);
   } catch (err) {
     next(err);
   }
@@ -30,7 +30,7 @@ const getUser = async (req, res, next) => {
     const user = await User.findById(req.params.userId);
     if (!user) throw new AppError(404, "User not found");
 
-    return sendSuccess(res, 200, user, null, true);
+    return sendSuccess(res, 200, user, null, false);
   } catch (err) {
     next(err);
   }
@@ -45,7 +45,7 @@ const updateUser = async (req, res, next) => {
     });
     if (!user) throw new AppError(404, "User not found");
 
-    return sendSuccess(res, 200, user, null, true);
+    return sendSuccess(res, 200, user, null, false);
   } catch (err) {
     next(err);
   }
@@ -60,7 +60,7 @@ const patchUser = async (req, res, next) => {
     );
     if (!user) throw new AppError(404, "User not found");
 
-    return sendSuccess(res, 200, user, null, true);
+    return sendSuccess(res, 200, user, null, false);
   } catch (err) {
     next(err);
   }
