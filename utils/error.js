@@ -1,15 +1,4 @@
-const httpStatus = {
-  200: "OK",
-  201: "Created",
-  204: "No Content",
-  400: "Bad Request",
-  401: "Unauthorized",
-  403: "Forbidden",
-  404: "Not Found",
-  409: "Conflict",
-  422: "Unprocessable Entity",
-  500: "Internal Server Error",
-};
+const { AppError, httpStatus } = require("./AppError");
 
 const errorMap = {
   ValidationError: (err) => ({
@@ -42,35 +31,27 @@ const errorMap = {
   },
 };
 
-class AppError extends Error {
-  constructor(status, message, error = httpStatus[status] || "Error") {
-    super(message);
-    this.status = status;
-    this.error = error;
-  }
-}
-
 const handleError = (err, res, context = "Unknown operation") => {
   console.error(`[ERROR] ${context}: ${err.name} - ${err.message}`);
 
   let mappedError;
 
   if (errorMap[err.name]) {
-    mappedError = errorMap[err.name](err, context);
+    mappedError = errorMap[err.name](err);
   }
 
-  if (!mappedError && err instanceof AppError) {
+  if (!mappedError && (err instanceof AppError || err.name === "AppError")) {
     mappedError = {
-      status: err.status,
-      error: err.error,
+      status: err.status || 500,
+      error: err.error || httpStatus[err.status] || "Error",
       message: err.message,
     };
   }
 
   if (!mappedError) {
     mappedError = {
-      status: err.status || 500,
-      error: err.error || httpStatus[500],
+      status: 500,
+      error: httpStatus[500],
       message: err.message || "Unexpected error occurred",
     };
   }
@@ -85,10 +66,7 @@ const sendSuccess = (
   message,
   raw = false
 ) => {
-  if (statusCode === 204) {
-    return res.status(204).send();
-  }
-
+  if (statusCode === 204) return res.status(204).send();
   if (raw) return res.status(statusCode).json(data);
 
   return res.status(statusCode).json({
@@ -98,4 +76,4 @@ const sendSuccess = (
   });
 };
 
-module.exports = { handleError, sendSuccess, AppError, httpStatus };
+module.exports = { handleError, sendSuccess };

@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const ClothingItem = require("../models/clothingItems");
-const AppError = require("./AppError");
+const { AppError } = require("./error");
 
 const validateObjectId = (id, field = "ID") => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -22,7 +22,7 @@ const validateWeather = (weather) => {
       `weather must be one of: ${ClothingItem.weatherCategories.join(", ")}`
     );
 
-  return matchedWeather; // preserves enum casing
+  return matchedWeather;
 };
 
 const validateImageURL = (imageURL) => {

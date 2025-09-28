@@ -1,10 +1,9 @@
 const User = require("../models/user");
-const AppError = require("../utils/AppError");
-const { sendSuccess } = require("../utils/error");
+const { AppError, sendSuccess } = require("../utils/error");
+const { validateObjectId } = require("../utils/validation");
 
 const createUser = async (req, res) => {
-  const { name, avatar } = req.body;
-  const user = await User.create({ name, avatar });
+  const user = await User.create(req.body);
   return sendSuccess(res, 201, user, null, true);
 };
 
@@ -14,27 +13,26 @@ const getUsers = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
+  validateObjectId(req.params.userId, "userId");
   const user = await User.findById(req.params.userId);
   if (!user) throw new AppError(404, "User not found");
   return sendSuccess(res, 200, user, null, true);
 };
 
 const updateUser = async (req, res) => {
-  const { name, avatar } = req.body;
-  const user = await User.findByIdAndUpdate(
-    req.params.userId,
-    { name, avatar },
-    { new: true, runValidators: true, context: "query" }
-  );
+  const user = await User.findByIdAndUpdate(req.params.userId, req.body, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  });
   if (!user) throw new AppError(404, "User not found");
   return sendSuccess(res, 200, user, null, true);
 };
 
 const patchUser = async (req, res) => {
-  const updates = req.body;
   const user = await User.findByIdAndUpdate(
     req.params.userId,
-    { $set: updates },
+    { $set: req.body },
     { new: true, runValidators: true, context: "query" }
   );
   if (!user) throw new AppError(404, "User not found");
@@ -48,8 +46,8 @@ const deleteUser = async (req, res) => {
 };
 
 module.exports = {
-  getUsers,
   createUser,
+  getUsers,
   getUser,
   updateUser,
   patchUser,

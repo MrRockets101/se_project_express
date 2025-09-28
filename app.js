@@ -1,9 +1,9 @@
-const express = require("express");
 const mongoose = require("mongoose");
 const mainRouter = require("./routes/index");
-const AppError = require("./utils/AppError");
-const { handleError } = require("./utils/error");
+const { AppError, handleError } = require("./utils/error");
 
+const express = require("express");
+const normalizer = require("./utils/normalizer");
 const app = express();
 const { PORT = 3001 } = process.env;
 
@@ -13,7 +13,7 @@ mongoose
   .catch(console.error);
 
 app.use(express.json());
-
+app.use(normalizer);
 app.use((req, res, next) => {
   req.user = { _id: new mongoose.Types.ObjectId("68d59448e0bb1ba442a13af6") };
   next();
@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  handleError(err, res);
+  return handleError(err, res);
 });
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
