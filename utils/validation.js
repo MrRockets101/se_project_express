@@ -10,24 +10,24 @@ const validateObjectId = (id, field = "ID") => {
 
 const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
   return (req, res, next) => {
-    try {
-      const body = req.body;
-      if (!body || typeof body !== "object") {
-        throw new AppError(400, "Request body must be a valid object");
+    const body = req.body;
+    if (!body || typeof body !== "object") {
+      return next(new AppError(400, "Request body must be a valid object"));
+    }
+
+    for (const field of required) {
+      if (
+        body[field] === undefined ||
+        body[field] === null ||
+        body[field] === ""
+      ) {
+        return next(new AppError(400, `${field} is required`));
       }
+    }
 
-      required.forEach((field) => {
-        if (
-          body[field] === undefined ||
-          body[field] === null ||
-          body[field] === ""
-        ) {
-          throw new AppError(400, `${field} is required`);
-        }
-      });
-
-      const allFields = [...required, ...optional];
-      allFields.forEach((field) => {
+    const allFields = [...required, ...optional];
+    try {
+      for (const field of allFields) {
         if (
           body[field] !== undefined &&
           body[field] !== null &&
@@ -35,12 +35,12 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
         ) {
           body[field] = custom[field](body[field]);
         }
-      });
-
-      next();
+      }
     } catch (err) {
-      next(err);
+      return next(err);
     }
+
+    next();
   };
 };
 
