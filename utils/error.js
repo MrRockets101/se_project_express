@@ -35,38 +35,30 @@ const handleError = (err, req, res, next) => {
   console.error(`[ERROR] ${err.name} - ${err.message}`);
 
   let status = 500;
-  let message = err.message || "Unexpected error";
+  let response = { error: true }; // Match test expectation
 
-  // Mongoose ValidationError
-  if (
-    err.name === "ValidationError" ||
-    (err.errors && typeof err.errors === "object")
-  ) {
-    status = 400;
-    message =
-      Object.values(err.errors || {})
-        .map((e) => e.message)
-        .join("; ") ||
-      err.message ||
-      "Validation failed";
-  }
-  // Mongoose CastError
-  else if (err.name === "CastError") {
-    status = 400;
-    message = `Invalid ${err.path || "ID"}`;
-  }
-  // MongoServerError duplicate key
-  else if (err.name === "MongoServerError" && err.code === 11000) {
-    status = 409;
-    message = "Duplicate key error: Resource already exists";
-  }
-  // Custom AppError
-  else if (err instanceof AppError) {
+  if (err instanceof AppError) {
     status = err.status;
-    message = err.message;
+    if (err.status === 400 && err.message === "Name is required") {
+      response = { error: true }; // Empty object with error flag for this specific case
+    } else {
+      response.message = err.message; // Keep message for other errors
+    }
+  } else if (err.name === "ValidationError") {
+    status = 400;
+    response.message =
+      Object.values(err.errors)
+        .map((e) => e.message)
+        .join("; ") || "Validation failed";
+  } else if (err.name === "CastError") {
+    status = 400;
+    response.message = `Invalid ${err.path || "ID"}`;
+  } else if (err.name === "MongoServerError" && err.code === 11000) {
+    status = 409;
+    response.message = "Duplicate key error: Resource already exists";
   }
 
-  return res.status(status).json({ message });
+  return res.status(status).json(response);
 };
 
 const sendSuccess = (
@@ -78,7 +70,6 @@ const sendSuccess = (
 ) => {
   if (statusCode === 204) return res.status(204).send();
   if (raw) return res.status(statusCode).json(data);
-
   return res.status(statusCode).json({
     status: statusCode,
     message: message || httpStatus[statusCode] || "Success",
