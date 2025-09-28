@@ -73,7 +73,7 @@ const sendSuccess = (
   return res.status(statusCode).json({
     status: statusCode,
     message: message || httpStatus[statusCode] || "Success",
-    data: data || {},
+    data,
   });
 };
 
