@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const { AppError } = require("./error");
+const { AppError, httpStatus } = require("./error"); // Updated import
 
 const validateObjectId = (id, field = "ID") => {
   if (!mongoose.Types.ObjectId.isValid(id)) {

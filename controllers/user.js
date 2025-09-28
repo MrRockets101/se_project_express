@@ -1,5 +1,5 @@
 const User = require("../models/user");
-const { AppError, sendSuccess } = require("../utils/error");
+const { AppError, sendSuccess } = require("../utils/error"); // Verify this line
 const { validateObjectId } = require("../utils/validation");
 
 const createUser = async (req, res, next) => {

@@ -1,5 +1,6 @@
 const WeatherCategory = require("../models/weatherCategory");
-const { AppError, sendSuccess } = require("../utils/error");
+const clothingItem = require("../models/clothingItems");
+const { AppError, sendSuccess } = require("../utils/error"); // Verify this line
 const { validateObjectId } = require("../utils/validation");
 
 const createCategory = async (req, res, next) => {

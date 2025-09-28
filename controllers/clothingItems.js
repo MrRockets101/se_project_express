@@ -1,4 +1,3 @@
-const ClothingItem = require("../models/clothingItems");
 const { AppError, sendSuccess } = require("../utils/error");
 const { validateObjectId } = require("../utils/validation");
 const { mapItemResponse } = require("../utils/itemHelpers");
