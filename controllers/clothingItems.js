@@ -107,6 +107,7 @@ const createItem = async (req, res) => {
   const imageURL = req.body.imageURL || req.body.imageUrl;
   const owner = req.user._id;
 
+<<<<<<< HEAD
   if (!name) throw new AppError(400, "name is required");
 
   const matchedWeather = validateWeather(weather);
@@ -125,6 +126,17 @@ const createItem = async (req, res) => {
 const getItems = async (req, res) => {
   const items = await ClothingItem.find({});
   return sendSuccess(res, 200, items.map(mapItemResponse), null, true);
+=======
+  ClothingItem.create({ name, weather, imageURL, owner })
+    .then((item) => sendSuccess(res, 201, item, "Item created"))
+    .catch((err) => handleError(err, res, "Failed to create item"));
+};
+
+const getItems = (req, res) => {
+  ClothingItem.find({})
+    .then((items) => sendSuccess(res, 200, items, "Items retrieved"))
+    .catch((err) => handleError(err, res, "Failed to fetch items"));
+>>>>>>> parent of af4f6ce (implement dynamic)
 };
 
 const updateItem = async (req, res) => {
@@ -136,12 +148,29 @@ const updateItem = async (req, res) => {
 
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
+<<<<<<< HEAD
     { $set: { imageURL: validImageURL } },
     { new: true, runValidators: true, context: "query" }
   );
 
   if (!item) throw new AppError(404, "Item not found");
   return sendSuccess(res, 200, mapItemResponse(item), null, true);
+=======
+    { $set: { imageURL } },
+    { new: true, runValidators: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item, "Item updated");
+    })
+    .catch((err) => handleError(err, res, "Failed to update item"));
+>>>>>>> parent of af4f6ce (implement dynamic)
 };
 
 const patchItem = async (req, res) => {
@@ -152,6 +181,7 @@ const patchItem = async (req, res) => {
   if (!updates || Object.keys(updates).length === 0)
     throw new AppError(400, "No updates provided");
 
+<<<<<<< HEAD
   if (updates.weather) updates.weather = validateWeather(updates.weather);
   if (updates.imageURL || updates.imageUrl)
     updates.imageURL = validateImageURL(updates.imageURL || updates.imageUrl);
@@ -202,6 +232,44 @@ const unlikeItem = async (req, res) => {
   if (!item) throw new AppError(404, "Item not found");
   return sendSuccess(res, 200, mapItemResponse(item), null, true);
 >>>>>>> parent of aa6a1c0 (postman)
+=======
+const likeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item, "Item liked");
+    })
+    .catch((err) => handleError(err, res, "Failed to like item"));
+};
+
+const unlikeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res.status(404).send({
+          status: 404,
+          error: "Not Found",
+          message: "Item not found",
+        });
+      }
+      sendSuccess(res, 200, item, "Item unliked");
+    })
+    .catch((err) => handleError(err, res, "Failed to unlike item"));
+>>>>>>> parent of af4f6ce (implement dynamic)
 };
 
 module.exports = {

@@ -1,4 +1,5 @@
 const router = require("express").Router();
+<<<<<<< HEAD
 const asyncHandler = require("../utils/asyncHandler");
 const {
   validateBody,
@@ -48,5 +49,12 @@ router.patch(
 );
 
 router.delete("/:userId", validateParam("userId"), asyncHandler(deleteUser));
+=======
+const { getUsers, createUser, getUser } = require("../controllers/user");
+
+router.get("/", getUsers);
+router.get("/:userId", getUser);
+router.post("/", createUser);
+>>>>>>> parent of af4f6ce (implement dynamic)
 
 module.exports = router;

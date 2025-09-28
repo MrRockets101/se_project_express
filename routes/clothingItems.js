@@ -15,6 +15,7 @@ const {
   unlikeItem,
 } = require("../controllers/clothingItems");
 
+<<<<<<< HEAD
 router.get("/", asyncHandler(getItems));
 router.post(
   "/",
@@ -50,5 +51,24 @@ router.delete(
   validateParam("itemId"),
   asyncHandler(unlikeItem)
 );
+=======
+// CREATE
+router.post("/", createItem);
+
+// READ
+router.get("/", getItems);
+
+// UPDATE
+router.put("/:itemId", updateItem);
+
+// DELETE
+router.delete("/:itemId", deleteItem);
+
+// LIKE
+router.put("/:itemId/likes", likeItem);
+
+// UNLIKE
+router.delete("/:itemId/likes", unlikeItem);
+>>>>>>> parent of af4f6ce (implement dynamic)
 
 module.exports = router;
