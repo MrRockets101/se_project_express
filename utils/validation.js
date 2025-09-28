@@ -16,7 +16,6 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
         throw new AppError(400, "Request body must be a valid object");
       }
 
-      // required fields
       required.forEach((field) => {
         if (
           body[field] === undefined ||
@@ -27,8 +26,8 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
         }
       });
 
-      // optional & custom validation
-      [...required, ...optional].forEach((field) => {
+      const allFields = [...required, ...optional];
+      allFields.forEach((field) => {
         if (
           body[field] !== undefined &&
           body[field] !== null &&
