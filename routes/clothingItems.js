@@ -60,11 +60,7 @@ router.patch(
   asyncHandler(patchItem)
 );
 
-router.delete(
-  "/:itemId",
-  validateParam("itemId", { allowNull: true }),
-  asyncHandler(deleteItem)
-);
+router.delete("/:itemId", validateParam("itemId"), asyncHandler(deleteItem));
 
 router.put("/:itemId/likes", validateParam("itemId"), asyncHandler(likeItem));
 router.delete(

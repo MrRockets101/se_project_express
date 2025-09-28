@@ -79,14 +79,16 @@ const patchItem = async (req, res, next) => {
 
 const deleteItem = async (req, res, next) => {
   try {
-    validateObjectId(req.params.itemId, "itemId");
-
     const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
-    if (!item) throw new AppError(404, "Item not found");
+
+    if (!item) {
+      // ID valid but not in DB
+      return next(new AppError(404, "Item not found"));
+    }
 
     return sendSuccess(res, 204);
   } catch (err) {
-    next(err);
+    next(err); // Pass any other unexpected errors to error middleware
   }
 };
 
