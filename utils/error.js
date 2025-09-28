@@ -38,32 +38,37 @@ const handleError = (err, req, res, next) => {
   let error = "Internal Server Error";
   let message = err.message || "Unexpected error";
 
-  // Mongoose ValidationError or CastError
-  if (err.name === "ValidationError" || err.name === "CastError") {
+  // Handle Mongoose validation errors robustly
+  if (
+    err.name === "ValidationError" ||
+    (err.errors && typeof err.errors === "object")
+  ) {
     status = 400;
     error = "Bad Request";
-
-    if (err.errors && Object.keys(err.errors).length > 0) {
-      message = Object.values(err.errors)
+    message =
+      Object.values(err.errors || {})
         .map((e) => e.message)
-        .join("; ");
-    } else if (err.name === "CastError") {
-      message = `Invalid ${err.path}`;
-    } else {
-      message = err.message || "Validation failed";
-    }
+        .join("; ") ||
+      err.message ||
+      "Validation failed";
   }
-  // Duplicate key error
+  // Handle duplicate key errors
   else if (err.name === "MongoServerError" && err.code === 11000) {
     status = 409;
     error = "Conflict";
     message = "Duplicate key error: Resource already exists";
   }
-  // Custom AppError
+  // Handle custom AppError
   else if (err instanceof AppError) {
     status = err.status;
     error = err.error;
     message = err.message;
+  }
+  // Anything else
+  else if (err.name === "CastError") {
+    status = 400;
+    error = "Bad Request";
+    message = `Invalid ${err.path || "ID"}`;
   }
 
   return res.status(status).json({ status, error, message });
