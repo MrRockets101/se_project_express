@@ -8,6 +8,7 @@ const validateObjectId = (id, field = "ID") => {
   }
 };
 
+// Validate request body
 const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
   return (req, res, next) => {
     try {
@@ -34,17 +35,22 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
           body[field] !== null &&
           custom[field]
         ) {
-          body[field] = custom[field](body[field]); // make sure custom validators throw AppError
+          try {
+            body[field] = custom[field](body[field]);
+          } catch (err) {
+            return next(err);
+          }
         }
       }
 
       next();
     } catch (err) {
-      next(err); // <--- always call next here
+      next(err);
     }
   };
 };
 
+// Validate URL params (ObjectId)
 const validateParam = (paramName = "id", options = { allowNull: false }) => {
   return (req, res, next) => {
     try {
@@ -55,18 +61,15 @@ const validateParam = (paramName = "id", options = { allowNull: false }) => {
         req.params[paramName] = null;
       }
 
-      if (options.allowNull && (!value || value === null)) {
-        return next();
-      }
+      if (options.allowNull && (!value || value === null)) return next();
 
-      // validate ObjectId
       if (!mongoose.Types.ObjectId.isValid(value)) {
         return next(new AppError(400, `Invalid ${paramName}`));
       }
 
       next();
     } catch (err) {
-      next(err); // <--- always call next here
+      next(err);
     }
   };
 };
@@ -80,9 +83,8 @@ const validators = {
   },
   enum: (enumList) => (value) => {
     const match = enumList.find((v) => v.toLowerCase() === value.toLowerCase());
-    if (!match) {
+    if (!match)
       throw new AppError(400, `Value must be one of: ${enumList.join(", ")}`);
-    }
     return match;
   },
 };

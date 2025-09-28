@@ -1,13 +1,8 @@
-const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
 const { AppError, sendSuccess } = require("../utils/error");
 const { mapItemResponse } = require("../utils/itemHelpers");
 
-const handleUpdate = async (itemId, updates = {}, next) => {
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    return next(new AppError(400, "Invalid itemId"));
-  }
-
+const handleUpdate = async (itemId, updates = {}) => {
   const item = await ClothingItem.findByIdAndUpdate(
     itemId,
     { $set: updates },
@@ -17,8 +12,7 @@ const handleUpdate = async (itemId, updates = {}, next) => {
       context: "query",
     }
   );
-
-  if (!item) return next(new AppError(404, "Item not found"));
+  if (!item) throw new AppError(404, "Item not found");
   return item;
 };
 
@@ -45,14 +39,8 @@ const getItems = async (req, res, next) => {
 
 const getItem = async (req, res, next) => {
   try {
-    const { itemId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(itemId)) {
-      return next(new AppError(400, "Invalid itemId"));
-    }
-
-    const item = await ClothingItem.findById(itemId);
+    const item = await ClothingItem.findById(req.params.itemId);
     if (!item) return next(new AppError(404, "Item not found"));
-
     return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
@@ -61,12 +49,9 @@ const getItem = async (req, res, next) => {
 
 const updateItem = async (req, res, next) => {
   try {
-    const item = await handleUpdate(
-      req.params.itemId,
-      { imageURL: req.body.imageURL },
-      next
-    );
-    if (!item) return;
+    const item = await handleUpdate(req.params.itemId, {
+      imageURL: req.body.imageURL,
+    });
     return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
@@ -75,8 +60,7 @@ const updateItem = async (req, res, next) => {
 
 const patchItem = async (req, res, next) => {
   try {
-    const item = await handleUpdate(req.params.itemId, req.body, next);
-    if (!item) return;
+    const item = await handleUpdate(req.params.itemId, req.body);
     return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
@@ -85,14 +69,8 @@ const patchItem = async (req, res, next) => {
 
 const deleteItem = async (req, res, next) => {
   try {
-    const { itemId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(itemId)) {
-      return next(new AppError(400, "Invalid itemId"));
-    }
-
-    const item = await ClothingItem.findByIdAndDelete(itemId);
+    const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
     if (!item) return next(new AppError(404, "Item not found"));
-
     return sendSuccess(res, 200, { _id: item._id });
   } catch (err) {
     next(err);
@@ -101,17 +79,11 @@ const deleteItem = async (req, res, next) => {
 
 const likeItem = async (req, res, next) => {
   try {
-    const { itemId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(itemId)) {
-      return next(new AppError(400, "Invalid itemId"));
-    }
-
     const item = await ClothingItem.findByIdAndUpdate(
-      itemId,
+      req.params.itemId,
       { $addToSet: { likes: req.user._id } },
       { new: true }
     );
-
     if (!item) return next(new AppError(404, "Item not found"));
     return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
@@ -121,17 +93,11 @@ const likeItem = async (req, res, next) => {
 
 const unlikeItem = async (req, res, next) => {
   try {
-    const { itemId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(itemId)) {
-      return next(new AppError(400, "Invalid itemId"));
-    }
-
     const item = await ClothingItem.findByIdAndUpdate(
-      itemId,
+      req.params.itemId,
       { $pull: { likes: req.user._id } },
       { new: true }
     );
-
     if (!item) return next(new AppError(404, "Item not found"));
     return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {

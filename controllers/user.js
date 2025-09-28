@@ -1,13 +1,8 @@
-const mongoose = require("mongoose");
 const User = require("../models/user");
 const { AppError, sendSuccess } = require("../utils/error");
 
 const createUser = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(new AppError(400, "Request body is required"));
-    }
-
     const user = await User.create(req.body);
     return sendSuccess(res, 201, user, null, true);
   } catch (err) {
@@ -26,14 +21,8 @@ const getUsers = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return next(new AppError(400, "Invalid userId"));
-    }
-
-    const user = await User.findById(userId);
+    const user = await User.findById(req.params.userId);
     if (!user) return next(new AppError(404, "User not found"));
-
     return sendSuccess(res, 200, user, null, true);
   } catch (err) {
     next(err);
@@ -42,17 +31,11 @@ const getUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return next(new AppError(400, "Invalid userId"));
-    }
-
-    const user = await User.findByIdAndUpdate(userId, req.body, {
+    const user = await User.findByIdAndUpdate(req.params.userId, req.body, {
       new: true,
       runValidators: true,
       context: "query",
     });
-
     if (!user) return next(new AppError(404, "User not found"));
     return sendSuccess(res, 200, user, null, true);
   } catch (err) {
@@ -62,17 +45,15 @@ const updateUser = async (req, res, next) => {
 
 const patchUser = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return next(new AppError(400, "Invalid userId"));
-    }
-
     const user = await User.findByIdAndUpdate(
-      userId,
+      req.params.userId,
       { $set: req.body },
-      { new: true, runValidators: true, context: "query" }
+      {
+        new: true,
+        runValidators: true,
+        context: "query",
+      }
     );
-
     if (!user) return next(new AppError(404, "User not found"));
     return sendSuccess(res, 200, user, null, true);
   } catch (err) {
@@ -82,14 +63,8 @@ const patchUser = async (req, res, next) => {
 
 const deleteUser = async (req, res, next) => {
   try {
-    const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return next(new AppError(400, "Invalid userId"));
-    }
-
-    const user = await User.findByIdAndDelete(userId);
+    const user = await User.findByIdAndDelete(req.params.userId);
     if (!user) return next(new AppError(404, "User not found"));
-
     return sendSuccess(res, 204);
   } catch (err) {
     next(err);
