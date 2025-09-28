@@ -36,38 +36,32 @@ const handleError = (err, res) => {
 
   let mappedError;
 
-  // Mongoose ValidationError
   if (err.name === "ValidationError") {
-    const messages = Object.values(err.errors || {})
-      .map((e) => e.message)
-      .join("; ");
+    // Robustly handle Mongoose validation errors
+    const messages =
+      err.errors && Object.values(err.errors).length
+        ? Object.values(err.errors)
+            .map((e) => e.message)
+            .join("; ")
+        : err.message || "Validation failed";
     mappedError = {
       status: 400,
       error: "Bad Request",
-      message: messages || "Validation failed",
+      message: messages,
     };
-  }
-
-  // MongoServerError (e.g., duplicate key)
-  else if (err.name === "MongoServerError" && err.code === 11000) {
+  } else if (err.name === "MongoServerError" && err.code === 11000) {
     mappedError = {
       status: 409,
       error: "Conflict",
       message: "Duplicate key error: Resource already exists",
     };
-  }
-
-  // Custom AppError
-  else if (err instanceof AppError) {
+  } else if (err instanceof AppError) {
     mappedError = {
       status: err.status,
       error: err.error,
       message: err.message,
     };
-  }
-
-  // Fallback
-  else {
+  } else {
     mappedError = {
       status: 500,
       error: "Internal Server Error",
