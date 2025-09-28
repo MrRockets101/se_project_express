@@ -36,10 +36,24 @@ const handleError = (err, res, context = "Unknown operation") => {
 
   let mappedError;
 
+  // Map known error types
   if (errorMap[err.name]) {
     mappedError = errorMap[err.name](err);
   }
 
+  // If Mongoose ValidationError, aggregate messages
+  if (!mappedError && err.name === "ValidationError") {
+    const messages = Object.values(err.errors)
+      .map((e) => e.message)
+      .join("; ");
+    mappedError = {
+      status: 400,
+      error: httpStatus[400],
+      message: messages || "Validation failed",
+    };
+  }
+
+  // If AppError
   if (!mappedError && (err instanceof AppError || err.name === "AppError")) {
     mappedError = {
       status: err.status || 500,
@@ -48,6 +62,7 @@ const handleError = (err, res, context = "Unknown operation") => {
     };
   }
 
+  // Fallback
   if (!mappedError) {
     mappedError = {
       status: 500,
