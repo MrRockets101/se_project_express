@@ -7,11 +7,24 @@ const { AppError, handleError } = require("./utils/error");
 const app = express();
 const { PORT = 3001 } = process.env;
 
+const WeatherCategory = require("./models/weatherCategory");
+
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
-  .then(() => console.log("Connected to DB"))
+  .then(async () => {
+    console.log("Connected to DB");
+    // Seed initial categories
+    const existing = await WeatherCategory.countDocuments();
+    if (existing === 0) {
+      await WeatherCategory.insertMany([
+        { name: "hot" },
+        { name: "warm" },
+        { name: "cold" },
+      ]);
+      console.log("Seeded initial weather categories");
+    }
+  })
   .catch((err) => console.error("DB connection error:", err));
-
 app.use(express.json());
 
 app.use(normalizer);

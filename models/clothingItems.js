@@ -1,16 +1,20 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 
-const weatherCategories = ["hot", "warm", "cold"];
-
 const clothingItemSchema = new mongoose.Schema({
   name: { type: String, required: true, minlength: 2, maxlength: 30 },
   weather: {
     type: String,
     required: true,
-    enum: {
-      values: weatherCategories,
-      message: "{VALUE} is not a valid weather type",
+    validate: {
+      validator: async function (v) {
+        const WeatherCategory = require("./weatherCategory"); // Avoid circular import
+        const category = await WeatherCategory.findOne({
+          name: v.toLowerCase(),
+        });
+        return !!category;
+      },
+      message: "{VALUE} is not a valid weather category",
     },
   },
   imageURL: {
@@ -24,7 +28,5 @@ const clothingItemSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "user" },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "user", default: [] }],
 });
-
-clothingItemSchema.statics.weatherCategories = weatherCategories;
 
 module.exports = mongoose.model("item", clothingItemSchema);

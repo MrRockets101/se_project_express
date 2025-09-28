@@ -15,7 +15,6 @@ const {
   likeItem,
   unlikeItem,
 } = require("../controllers/clothingItems");
-const { weatherCategories } = require("../models/clothingItems");
 
 router.get("/", asyncHandler(getItems));
 
@@ -30,7 +29,7 @@ router.post(
   validateBody({
     required: ["name", "weather", "imageURL"],
     custom: {
-      weather: validators.enum(weatherCategories),
+      weather: validators.weather, // Use async weather validator
       imageURL: validators.url,
     },
   }),
@@ -41,8 +40,11 @@ router.put(
   "/:itemId",
   validateParam("itemId"),
   validateBody({
-    required: ["imageURL"],
-    custom: { imageURL: validators.url },
+    required: ["name", "weather", "imageURL"], // Full update for PUT
+    custom: {
+      weather: validators.weather, // Use async weather validator
+      imageURL: validators.url,
+    },
   }),
   asyncHandler(updateItem)
 );
@@ -51,9 +53,9 @@ router.patch(
   "/:itemId",
   validateParam("itemId"),
   validateBody({
-    optional: ["weather", "imageURL"],
+    optional: ["name", "weather", "imageURL"], // Partial update
     custom: {
-      weather: validators.enum(weatherCategories),
+      weather: validators.weather, // Use async weather validator
       imageURL: validators.url,
     },
   }),

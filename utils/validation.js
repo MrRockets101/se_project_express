@@ -9,13 +9,13 @@ const validateObjectId = (id, field = "ID") => {
 };
 
 const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const body = req.body;
     if (!body || typeof body !== "object") {
       return next(new AppError(400, "Request body must be a valid object"));
     }
 
-    // check required fields
+    // Check required fields
     for (const field of required) {
       if (
         body[field] === undefined ||
@@ -34,14 +34,13 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
           body[field] !== null &&
           custom[field]
         ) {
-          body[field] = custom[field](body[field]); // custom validators throw AppError
+          body[field] = await custom[field](body[field]); // Supports async
         }
       }
+      next();
     } catch (err) {
-      return next(err); // <- ensure validation errors go to error middleware
+      next(err);
     }
-
-    next();
   };
 };
 
@@ -50,7 +49,7 @@ const validateParam = (paramName = "id", options = { allowNull: false }) => {
     try {
       let value = req.params[paramName];
 
-      // treat "null" string as null
+      // Treat "null" string as null
       if (typeof value === "string" && value.toLowerCase() === "null") {
         value = null;
         req.params[paramName] = null;
@@ -76,11 +75,13 @@ const validators = {
     }
     return value;
   },
-  enum: (enumList) => (value) => {
-    const match = enumList.find((v) => v.toLowerCase() === value.toLowerCase());
-    if (!match)
-      throw new AppError(400, `Value must be one of: ${enumList.join(", ")}`);
-    return match;
+  weather: async (value) => {
+    const WeatherCategory = require("../models/weatherCategory");
+    const match = await WeatherCategory.findOne({ name: value.toLowerCase() });
+    if (!match) {
+      throw new AppError(400, `Value must be a valid category: ${value}`);
+    }
+    return match.name; // Normalize to stored case
   },
 };
 

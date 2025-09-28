@@ -1,6 +1,6 @@
 const ClothingItem = require("../models/clothingItems");
 const { AppError, sendSuccess } = require("../utils/error");
-const { validateObjectId, validators } = require("../utils/validation");
+const { validateObjectId } = require("../utils/validation");
 const { mapItemResponse } = require("../utils/itemHelpers");
 
 const createItem = async (req, res, next) => {
@@ -13,7 +13,7 @@ const createItem = async (req, res, next) => {
       owner: req.user._id,
     });
 
-    return sendSuccess(res, 201, mapItemResponse(item), null, true);
+    return sendSuccess(res, 201, mapItemResponse(item), null, false);
   } catch (err) {
     next(err);
   }
@@ -22,7 +22,7 @@ const createItem = async (req, res, next) => {
 const getItems = async (req, res, next) => {
   try {
     const items = await ClothingItem.find({});
-    return sendSuccess(res, 200, items.map(mapItemResponse), null, true);
+    return sendSuccess(res, 200, items.map(mapItemResponse), null, false);
   } catch (err) {
     next(err);
   }
@@ -35,7 +35,7 @@ const getItem = async (req, res, next) => {
     const item = await ClothingItem.findById(req.params.itemId);
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, true);
+    return sendSuccess(res, 200, mapItemResponse(item), null, false);
   } catch (err) {
     next(err);
   }
@@ -53,7 +53,7 @@ const updateItem = async (req, res, next) => {
 
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, true);
+    return sendSuccess(res, 200, mapItemResponse(item), null, false);
   } catch (err) {
     next(err);
   }
@@ -71,7 +71,7 @@ const patchItem = async (req, res, next) => {
 
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, true);
+    return sendSuccess(res, 200, mapItemResponse(item), null, false);
   } catch (err) {
     next(err);
   }
@@ -82,13 +82,12 @@ const deleteItem = async (req, res, next) => {
     const item = await ClothingItem.findByIdAndDelete(req.params.itemId);
 
     if (!item) {
-      // ID valid but not in DB
       return next(new AppError(404, "Item not found"));
     }
 
     return sendSuccess(res, 204);
   } catch (err) {
-    next(err); // Pass any other unexpected errors to error middleware
+    next(err);
   }
 };
 
@@ -103,7 +102,7 @@ const likeItem = async (req, res, next) => {
     );
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, true);
+    return sendSuccess(res, 200, mapItemResponse(item), null, false);
   } catch (err) {
     next(err);
   }
@@ -120,7 +119,7 @@ const unlikeItem = async (req, res, next) => {
     );
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, true);
+    return sendSuccess(res, 200, mapItemResponse(item), null, false);
   } catch (err) {
     next(err);
   }
