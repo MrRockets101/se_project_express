@@ -8,7 +8,7 @@ const createCategory = async (req, res, next) => {
       throw new AppError(400, "Request body is required");
     }
     const category = await WeatherCategory.create(req.body);
-    return sendSuccess(res, 201, category, null, false);
+    return sendSuccess(res, 201, category, null, true);
   } catch (err) {
     next(err);
   }
@@ -17,7 +17,7 @@ const createCategory = async (req, res, next) => {
 const getCategories = async (req, res, next) => {
   try {
     const categories = await WeatherCategory.find({});
-    return sendSuccess(res, 200, categories, null, false);
+    return sendSuccess(res, 200, categories, null, true);
   } catch (err) {
     next(err);
   }
@@ -29,7 +29,7 @@ const deleteCategory = async (req, res, next) => {
     const category = await WeatherCategory.findByIdAndDelete(
       req.params.categoryId
     );
-    if (!category) throw new AppError(404, "Category not found");
+    if (!item) throw new AppError(404, "Category not found");
     return sendSuccess(res, 204);
   } catch (err) {
     next(err);

@@ -5,6 +5,7 @@ const { mapItemResponse } = require("../utils/itemHelpers");
 
 const createItem = async (req, res, next) => {
   try {
+    console.log("POST /items - Request body:", req.body); // Debug log
     if (!req.body || Object.keys(req.body).length === 0)
       throw new AppError(400, "Request body is required");
 
@@ -13,7 +14,9 @@ const createItem = async (req, res, next) => {
       owner: req.user._id,
     });
 
-    return sendSuccess(res, 201, mapItemResponse(item), null, false);
+    const response = mapItemResponse(item);
+    console.log("POST /items - Response:", response); // Debug log
+    return sendSuccess(res, 201, response, null, true);
   } catch (err) {
     next(err);
   }
@@ -22,7 +25,13 @@ const createItem = async (req, res, next) => {
 const getItems = async (req, res, next) => {
   try {
     const items = await ClothingItem.find({});
-    return sendSuccess(res, 200, items.map(mapItemResponse), null, false);
+    return sendSuccess(
+      res,
+      200,
+      items.map((item) => mapItemResponse(item)),
+      null,
+      true
+    );
   } catch (err) {
     next(err);
   }
@@ -35,7 +44,7 @@ const getItem = async (req, res, next) => {
     const item = await ClothingItem.findById(req.params.itemId);
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, false);
+    return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
   }
@@ -53,7 +62,7 @@ const updateItem = async (req, res, next) => {
 
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, false);
+    return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
   }
@@ -71,7 +80,7 @@ const patchItem = async (req, res, next) => {
 
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, false);
+    return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
   }
@@ -102,7 +111,7 @@ const likeItem = async (req, res, next) => {
     );
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, false);
+    return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
   }
@@ -119,7 +128,7 @@ const unlikeItem = async (req, res, next) => {
     );
     if (!item) throw new AppError(404, "Item not found");
 
-    return sendSuccess(res, 200, mapItemResponse(item), null, false);
+    return sendSuccess(res, 200, mapItemResponse(item), null, true);
   } catch (err) {
     next(err);
   }
