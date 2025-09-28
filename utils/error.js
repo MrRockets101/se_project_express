@@ -31,45 +31,41 @@ const errorMap = {
   },
 };
 
-const handleError = (err, res) => {
+const handleError = (err, req, res, next) => {
   console.error(`[ERROR] ${err.name} - ${err.message}`);
 
-  let mappedError;
+  let status = 500;
+  let error = "Internal Server Error";
+  let message = err.message || "Unexpected error";
 
+  // Mongoose validation errors
   if (err.name === "ValidationError") {
-    // Robustly handle Mongoose validation errors
-    const messages =
-      err.errors && Object.values(err.errors).length
-        ? Object.values(err.errors)
-            .map((e) => e.message)
-            .join("; ")
-        : err.message || "Validation failed";
-    mappedError = {
-      status: 400,
-      error: "Bad Request",
-      message: messages,
-    };
-  } else if (err.name === "MongoServerError" && err.code === 11000) {
-    mappedError = {
-      status: 409,
-      error: "Conflict",
-      message: "Duplicate key error: Resource already exists",
-    };
-  } else if (err instanceof AppError) {
-    mappedError = {
-      status: err.status,
-      error: err.error,
-      message: err.message,
-    };
-  } else {
-    mappedError = {
-      status: 500,
-      error: "Internal Server Error",
-      message: err.message || "Unexpected error",
-    };
+    status = 400;
+    error = "Bad Request";
+    if (err.errors && Object.keys(err.errors).length > 0) {
+      message = Object.values(err.errors)
+        .map((e) => e.message)
+        .join("; ");
+    } else {
+      message = err.message || "Validation failed";
+    }
   }
 
-  return res.status(mappedError.status).json(mappedError);
+  // Mongo duplicate key
+  else if (err.name === "MongoServerError" && err.code === 11000) {
+    status = 409;
+    error = "Conflict";
+    message = "Duplicate key error: Resource already exists";
+  }
+
+  // Custom AppError
+  else if (err instanceof AppError) {
+    status = err.status;
+    error = err.error;
+    message = err.message;
+  }
+
+  return res.status(status).json({ status, error, message });
 };
 
 const sendSuccess = (
