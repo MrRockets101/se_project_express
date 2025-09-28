@@ -8,14 +8,13 @@ const {
 const {
   createItem,
   getItems,
-  getItem, // <-- import here
+  getItem,
   updateItem,
   patchItem,
   deleteItem,
   likeItem,
   unlikeItem,
 } = require("../controllers/clothingItems");
-
 const { weatherCategories } = require("../models/clothingItems");
 
 router.get("/", asyncHandler(getItems));

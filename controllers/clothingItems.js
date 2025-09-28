@@ -1,5 +1,5 @@
 const ClothingItem = require("../models/clothingItems");
-const { AppError, sendSuccess } = require("../utils/error"); // ✅ unified import
+const { AppError, sendSuccess } = require("../utils/error");
 const { mapItemResponse } = require("../utils/itemHelpers");
 
 const handleUpdate = async (itemId, updates = {}) => {
@@ -13,10 +13,7 @@ const handleUpdate = async (itemId, updates = {}) => {
 };
 
 const createItem = async (req, res) => {
-  const item = await ClothingItem.create({
-    ...req.body,
-    owner: req.user._id,
-  });
+  const item = await ClothingItem.create({ ...req.body, owner: req.user._id });
   return sendSuccess(res, 201, mapItemResponse(item), null, true);
 };
 
@@ -49,12 +46,10 @@ const patchItem = async (req, res) => {
 
 const deleteItem = async (req, res) => {
   const { itemId } = req.params;
-
-  if (!itemId) {
+  if (!itemId)
     return sendSuccess(res, 200, {
       message: "Item already deleted or missing",
     });
-  }
 
   const item = await ClothingItem.findByIdAndDelete(itemId);
   if (!item) throw new AppError(404, "Item not found");

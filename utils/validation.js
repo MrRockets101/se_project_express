@@ -16,6 +16,7 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
         throw new AppError(400, "Request body must be a valid object");
       }
 
+      // required fields
       required.forEach((field) => {
         if (
           body[field] === undefined ||
@@ -26,12 +27,14 @@ const validateBody = ({ required = [], optional = [], custom = {} } = {}) => {
         }
       });
 
-      const allFields = [...required, ...optional];
-      allFields.forEach((field) => {
-        if (body[field] !== undefined && body[field] !== null) {
-          if (custom[field]) {
-            body[field] = custom[field](body[field]);
-          }
+      // optional & custom validation
+      [...required, ...optional].forEach((field) => {
+        if (
+          body[field] !== undefined &&
+          body[field] !== null &&
+          custom[field]
+        ) {
+          body[field] = custom[field](body[field]);
         }
       });
 
@@ -46,9 +49,7 @@ const validateParam = (paramName = "id", options = { allowNull: false }) => {
   return (req, res, next) => {
     try {
       const value = req.params[paramName];
-      if (options.allowNull && (!value || value === "null")) {
-        return next();
-      }
+      if (options.allowNull && (!value || value === "null")) return next();
       validateObjectId(value, paramName);
       next();
     } catch (err) {
@@ -73,9 +74,4 @@ const validators = {
   },
 };
 
-module.exports = {
-  validateParam,
-  validateBody,
-  validators,
-  validateObjectId,
-};
+module.exports = { validateObjectId, validateBody, validateParam, validators };

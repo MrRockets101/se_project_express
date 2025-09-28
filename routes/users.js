@@ -1,13 +1,13 @@
 const router = require("express").Router();
 const asyncHandler = require("../utils/asyncHandler");
 const {
-  validateParam,
   validateBody,
+  validateParam,
   validators,
 } = require("../utils/validation");
 const {
-  getUsers,
   createUser,
+  getUsers,
   getUser,
   updateUser,
   patchUser,
@@ -16,7 +16,6 @@ const {
 
 router.get("/", asyncHandler(getUsers));
 
-// POST
 router.post(
   "/",
   validateBody({
@@ -26,10 +25,8 @@ router.post(
   asyncHandler(createUser)
 );
 
-// GET by ID
 router.get("/:userId", validateParam("userId"), asyncHandler(getUser));
 
-// PUT
 router.put(
   "/:userId",
   validateParam("userId"),
@@ -40,7 +37,6 @@ router.put(
   asyncHandler(updateUser)
 );
 
-// PATCH
 router.patch(
   "/:userId",
   validateParam("userId"),
@@ -51,7 +47,6 @@ router.patch(
   asyncHandler(patchUser)
 );
 
-// DELETE
 router.delete("/:userId", validateParam("userId"), asyncHandler(deleteUser));
 
 module.exports = router;

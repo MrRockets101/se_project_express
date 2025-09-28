@@ -4,10 +4,21 @@ const normalizeObject = (obj) => {
   const normalized = {};
   for (const key of Object.keys(obj)) {
     let normalizedKey = key;
-    if (key.toLowerCase() === "imageurl") normalizedKey = "imageURL";
-    if (key.toLowerCase() === "weather") normalizedKey = "weather";
-    if (key.toLowerCase() === "name") normalizedKey = "name";
-    if (key.toLowerCase() === "itemid") normalizedKey = "itemId";
+
+    switch (key.toLowerCase()) {
+      case "imageurl":
+        normalizedKey = "imageURL";
+        break;
+      case "itemid":
+        normalizedKey = "itemId";
+        break;
+      case "name":
+        normalizedKey = "name";
+        break;
+      case "weather":
+        normalizedKey = "weather";
+        break;
+    }
 
     normalized[normalizedKey] = obj[key];
   }
@@ -17,13 +28,6 @@ const normalizeObject = (obj) => {
 module.exports = (req, res, next) => {
   if (req.body && typeof req.body === "object") {
     req.body = normalizeObject(req.body);
-
-    if (!req.body.weather) {
-      req.body.weather = "any";
-    }
-    if (!req.body.imageURL) {
-      req.body.imageURL = "https://placehold.co/200";
-    }
   }
 
   if (req.query && Object.keys(req.query).length > 0) {
@@ -33,8 +37,14 @@ module.exports = (req, res, next) => {
   if (req.params && Object.keys(req.params).length > 0) {
     req.params = normalizeObject(req.params);
 
-    if (req.params.itemId && req.params.itemId.toLowerCase() === "null") {
-      req.params.itemId = null;
+    // handle "null" string as null dynamically
+    for (const key of Object.keys(req.params)) {
+      if (
+        typeof req.params[key] === "string" &&
+        req.params[key].toLowerCase() === "null"
+      ) {
+        req.params[key] = null;
+      }
     }
   }
 
