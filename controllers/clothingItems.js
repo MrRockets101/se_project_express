@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const ClothingItem = require("../models/clothingItems");
 const { handleError, sendSuccess } = require("../utils/error");
 
@@ -34,7 +33,7 @@ const updateItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 200, item, "Item updated");
+      return sendSuccess(res, 200, item, "Item updated");
     })
     .catch((err) => handleError(err, res, "Failed to update item"));
 };
@@ -51,7 +50,7 @@ const deleteItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 204);
+      return sendSuccess(res, 204);
     })
     .catch((err) => handleError(err, res, "Failed to delete item"));
 };
@@ -70,7 +69,7 @@ const likeItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 200, item, "Item liked");
+      return sendSuccess(res, 200, item, "Item liked");
     })
     .catch((err) => handleError(err, res, "Failed to like item"));
 };
@@ -89,7 +88,7 @@ const unlikeItem = (req, res) => {
           message: "Item not found",
         });
       }
-      sendSuccess(res, 200, item, "Item unliked");
+      return sendSuccess(res, 200, item, "Item unliked");
     })
     .catch((err) => handleError(err, res, "Failed to unlike item"));
 };

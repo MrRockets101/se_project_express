@@ -39,7 +39,7 @@ const handleError = (err, res, context = "Something went wrong") => {
   });
 };
 
-const sendSuccess = (res, statusCode, data = {}, message = "") => {
+const sendSuccess = (res, data = {}) => {
   let statusText = "";
 
   switch (statusCode) {

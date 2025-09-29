@@ -25,7 +25,7 @@ const getUser = (req, res) => {
           message: "User not found",
         });
       }
-      sendSuccess(res, 200, user, "User found");
+      return sendSuccess(res, 200, user, "User found");
     })
     .catch((err) => handleError(err, res, "Failed to find user"));
 };
