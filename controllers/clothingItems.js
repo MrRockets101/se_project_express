@@ -1,5 +1,6 @@
 const ClothingItem = require("../models/clothingItems");
 const { handleError, sendSuccess } = require("../utils/error");
+const mongoose = require("mongoose");
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
@@ -38,21 +39,47 @@ const updateItem = (req, res) => {
     .catch((err) => handleError(err, res, "Failed to update item"));
 };
 
-const deleteItem = (req, res) => {
+const deleteItem = async (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete(itemId)
-    .then((item) => {
-      if (!item) {
-        return res.status(404).send({
-          status: 404,
-          error: "Not Found",
-          message: "Item not found",
-        });
-      }
-      return sendSuccess(res, 204);
-    })
-    .catch((err) => handleError(err, res, "Failed to delete item"));
+  // Validate itemId
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(400).json({
+      status: 400,
+      error: "Bad Request",
+      message: "Invalid item ID format",
+    });
+  }
+
+  try {
+    const item = await ClothingItem.findById(itemId);
+
+    if (!item) {
+      return res.status(404).json({
+        status: 404,
+        error: "Not Found",
+        message: "Item not found",
+      });
+    }
+
+    // Check ownership
+    if (item.owner.toString() !== req.user._id) {
+      return res.status(403).json({
+        status: 403,
+        error: "Forbidden",
+        message: "You can only delete your own items",
+      });
+    }
+
+    await item.deleteOne();
+
+    return res.status(200).json({
+      status: 200,
+      message: "Item deleted",
+    });
+  } catch (err) {
+    return handleError(err, res, "Failed to delete item");
+  }
 };
 
 const likeItem = (req, res) => {

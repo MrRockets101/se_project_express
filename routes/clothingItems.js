@@ -8,6 +8,10 @@ const {
   unlikeItem,
 } = require("../controllers/clothingItems");
 
+const auth = require("../middlewares/auth");
+
+router.use(auth);
+
 // CREATE
 router.post("/", createItem);
 
