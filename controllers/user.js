@@ -7,7 +7,6 @@ const { JWT_SECRET } = require("../utils/config");
 const logIn = (req, res) => {
   const { email, password } = req.body;
 
-  // ✅ Pre-validation for required fields
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });
   }
@@ -37,22 +36,18 @@ const logIn = (req, res) => {
 const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
 
-  // 1. Required field check
   if (!email || !name || !avatar || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
-    // 2. Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({ message: "Email already exists" });
     }
 
-    // 3. Create new user
     const user = await User.create({ name, avatar, email, password });
 
-    // 4. Remove password before sending
     const safeUser =
       typeof user.toObject === "function" ? user.toObject() : user;
     delete safeUser.password;
@@ -70,7 +65,7 @@ const getCurrentUser = (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
       const safeUser = user.toObject();
-      delete safeUser.password; // remove password hash
+      delete safeUser.password;
       sendSuccess(res, 200, safeUser, "User profile");
     })
     .catch((err) => handleError(err, res, "Failed to get user"));
@@ -93,7 +88,7 @@ const updateCurrentUser = (req, res) => {
         });
       }
       const safeUser = user.toObject();
-      delete safeUser.password; // remove password hash
+      delete safeUser.password;
       sendSuccess(res, 200, safeUser, "User updated");
     })
     .catch((err) => handleError(err, res, "Failed to update user"));
