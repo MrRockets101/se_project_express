@@ -2,46 +2,40 @@ const handleError = (err, res, context = "Something went wrong") => {
   console.error(`[ERROR] ${err.name}: ${err.message}`);
 
   if (err.name === "ValidationError") {
-    return res.status(400).json({
-      status: 400,
-      error: "Bad Request",
-      message: err.message || "Validation failed",
-    });
+    const messages = Object.values(err.errors).map((e) => e.message);
+    return res
+      .status(400)
+      .json({ message: messages.join(", "), statusText: "Bad Request" });
   }
 
   if (err.name === "CastError") {
-    return res.status(400).json({
-      status: 400,
-      error: "Bad Request",
-      message: "Invalid ID format",
-    });
+    return res
+      .status(400)
+      .json({ message: "Invalid ID format", statusText: "Bad Request" });
+  }
+
+  if (err.name === "MongoServerError" && err.code === 11000) {
+    return res
+      .status(409)
+      .json({ message: "Email already exists", statusText: "Conflict" });
   }
 
   if (err.name === "DocumentNotFoundError") {
-    return res.status(404).json({
-      status: 404,
-      error: "Not Found",
-      message: "Requested resource not found",
-    });
+    return res
+      .status(404)
+      .json({
+        message: "Requested resource not found",
+        statusText: "Not Found",
+      });
   }
-  if (err.name === "MongoServerError" && err.code === 11000) {
-    return res.status(409).json({
-      status: 409,
-      error: "Conflict",
-      message: "Duplicate key error: Resource already exists",
-    });
-  }
-  return res.status(500).json({
-    status: 500,
-    error: "Internal Server Error",
-    message: context,
-    details: err.message,
-  });
+
+  return res
+    .status(500)
+    .json({ message: context, statusText: "Internal Server Error" });
 };
 
-const sendSuccess = (res, data = {}) => {
+const sendSuccess = (res, statusCode = 200, data = {}, message = "Success") => {
   let statusText = "";
-
   switch (statusCode) {
     case 200:
       statusText = "OK";
@@ -54,13 +48,22 @@ const sendSuccess = (res, data = {}) => {
       break;
     default:
       statusText = "Success";
+      statusCode = 200;
   }
 
-  if (statusCode === 204) {
-    return res.status(200).json({});
+  if (statusCode === 204) return res.status(204).json({});
+
+  // If data is an array, send it directly (Postman expects a plain array)
+  if (Array.isArray(data)) {
+    return res.status(statusCode).json(data);
   }
 
-  return res.status(statusCode).json(data);
+  // For objects, spread data and include message & statusText
+  return res.status(statusCode).json({
+    ...data,
+    message,
+    statusText,
+  });
 };
 
 module.exports = { handleError, sendSuccess };

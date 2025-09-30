@@ -7,6 +7,11 @@ const { JWT_SECRET } = require("../utils/config");
 const logIn = (req, res) => {
   const { email, password } = req.body;
 
+  // ✅ Pre-validation for required fields
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
   User.findOne({ email })
     .select("+password")
     .then((user) => {
@@ -29,15 +34,33 @@ const logIn = (req, res) => {
     .catch((err) => handleError(err, res, "Failed to sign in"));
 };
 
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   const { name, avatar, email, password } = req.body;
-  User.create({ name, avatar, email, password })
-    .then((user) => {
-      const safeUser = user.toObject();
-      delete safeUser.password;
-      sendSuccess(res, 201, safeUser, "User registered");
-    })
-    .catch((err) => handleError(err, res, "Failed to sign up"));
+
+  // 1. Required field check
+  if (!email || !name || !avatar || !password) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  try {
+    // 2. Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
+    // 3. Create new user
+    const user = await User.create({ name, avatar, email, password });
+
+    // 4. Remove password before sending
+    const safeUser =
+      typeof user.toObject === "function" ? user.toObject() : user;
+    delete safeUser.password;
+
+    return sendSuccess(res, 201, safeUser, "User registered");
+  } catch (err) {
+    return handleError(err, res, "Failed to sign up");
+  }
 };
 
 const getCurrentUser = (req, res) => {
@@ -76,14 +99,7 @@ const updateCurrentUser = (req, res) => {
     .catch((err) => handleError(err, res, "Failed to update user"));
 };
 
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => sendSuccess(res, 200, users, "Users retrieved"))
-    .catch((err) => handleError(err, res, "Failed to fetch users"));
-};
-
 module.exports = {
-  getUsers,
   createUser,
   logIn,
   getCurrentUser,

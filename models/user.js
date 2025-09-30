@@ -5,17 +5,18 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 30,
+    required: [true, "Name is required"],
+    minlength: [2, "Name must be at least 2 characters"],
+    maxlength: [30, "Name must be at most 30 characters"],
   },
   avatar: {
     type: String,
-    required: [true, "The avatar field is required."],
+    required: [true, "Avatar URL is required"],
     validate: {
-      validator(value) {
-        return validator.isURL(value);
-      },
+      validator: (v) =>
+        /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/.test(
+          v
+        ),
       message: "You must enter a valid URL",
     },
   },
@@ -23,15 +24,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Email is required"],
     unique: true,
-    validate: {
-      validator: (v) => validator.isEmail(v),
-      message: "Invalid email format",
-    },
+    match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
   },
   password: {
     type: String,
     required: [true, "Password is required"],
-    minlength: 6,
     select: false,
   },
 });

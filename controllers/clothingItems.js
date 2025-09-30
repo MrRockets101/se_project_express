@@ -7,13 +7,22 @@ const createItem = (req, res) => {
   const owner = req.user._id;
 
   ClothingItem.create({ name, weather, imageUrl, owner })
-    .then((item) => sendSuccess(res, 201, item, "Item created"))
+    .then((item) => {
+      const safeItem =
+        typeof item.toObject === "function" ? item.toObject() : item;
+      return sendSuccess(res, 201, safeItem, "Item created");
+    })
     .catch((err) => handleError(err, res, "Failed to create item"));
 };
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => sendSuccess(res, 200, items, "Items retrieved"))
+    .then((items) => {
+      const safeItems = items.map((i) =>
+        typeof i.toObject === "function" ? i.toObject() : i
+      );
+      return sendSuccess(res, 200, safeItems, "Items retrieved");
+    })
     .catch((err) => handleError(err, res, "Failed to fetch items"));
 };
 
@@ -42,7 +51,6 @@ const updateItem = (req, res) => {
 const deleteItem = async (req, res) => {
   const { itemId } = req.params;
 
-  // Validate itemId
   if (!mongoose.Types.ObjectId.isValid(itemId)) {
     return res.status(400).json({
       status: 400,
@@ -62,7 +70,8 @@ const deleteItem = async (req, res) => {
       });
     }
 
-    // Check ownership
+    console.log(req.user._id);
+    console.log(item.owner.toString());
     if (item.owner.toString() !== req.user._id) {
       return res.status(403).json({
         status: 403,
