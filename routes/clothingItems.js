@@ -12,22 +12,11 @@ const auth = require("../middlewares/auth");
 
 router.use(auth);
 
-// CREATE
-router.post("/", createItem);
+router.get("/", getItems); // public
 
-// READ
-router.get("/", getItems);
-
-// UPDATE
-router.put("/:itemId", updateItem);
-
-// DELETE
-router.delete("/:itemId", deleteItem);
-
-// LIKE
-router.put("/:itemId/likes", likeItem);
-
-// UNLIKE
-router.delete("/:itemId/likes", unlikeItem);
-
+router.post("/", auth, createItem);
+router.put("/:itemId", auth, updateItem);
+router.delete("/:itemId", auth, deleteItem);
+router.put("/:itemId/likes", auth, likeItem);
+router.delete("/:itemId/likes", auth, unlikeItem);
 module.exports = router;
