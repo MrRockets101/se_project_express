@@ -8,15 +8,13 @@ const clothingItemsRouter = require("./clothingItems");
 router.post("/signup", createUser);
 router.post("/signin", logIn);
 
-router.get("/items", clothingItemsRouter);
-
-router.use(auth);
-
-router.use("/users", userRouter);
 router.use("/items", clothingItemsRouter);
 
+router.use(auth);
+router.use("/users", userRouter);
+
 router.use((req, res) => {
-  res.status(404).send({ message: "route not found" });
+  res.status(404).send({ message: "Route not found" });
 });
 
 module.exports = router;

@@ -7,15 +7,17 @@ const {
   likeItem,
   unlikeItem,
 } = require("../controllers/clothingItems");
-
 const auth = require("../middlewares/auth");
 
-router.get("/", getItems); // public
+// Public route
+router.get("/", getItems);
 
+// Protected routes
 router.use(auth);
-router.post("/", auth, createItem);
-router.put("/:itemId", auth, updateItem);
-router.delete("/:itemId", auth, deleteItem);
-router.put("/:itemId/likes", auth, likeItem);
-router.delete("/:itemId/likes", auth, unlikeItem);
+router.post("/", createItem);
+router.put("/:itemId", updateItem);
+router.delete("/:itemId", deleteItem);
+router.put("/:itemId/likes", likeItem);
+router.delete("/:itemId/likes", unlikeItem);
+
 module.exports = router;
