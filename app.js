@@ -10,7 +10,7 @@ const APIKey = "e955bdfb0e38c1bba3f002b386abe0ce";
 
 mongoose
   .connect("mongodb://127.0.0.1:27017/wtwr_db")
-  .then(() => console.log("Connected to DB"))
+  .then(() => console.log("Connected to wtwr_db"))
   .catch(console.error);
 
 app.use(cors());

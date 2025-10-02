@@ -18,10 +18,8 @@ const createItem = (req, res) => {
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => {
-      const safeItems = items.map((i) =>
-        typeof i.toObject === "function" ? i.toObject() : i
-      );
-      return sendSuccess(res, 200, safeItems, "Items retrieved");
+      // return sendSuccess(res, 200, items, "Items retrieved");
+      res.send(items);
     })
     .catch((err) => handleError(err, res, "Failed to fetch items"));
 };

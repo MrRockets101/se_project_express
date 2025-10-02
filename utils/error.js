@@ -21,12 +21,10 @@ const handleError = (err, res, context = "Something went wrong") => {
   }
 
   if (err.name === "DocumentNotFoundError") {
-    return res
-      .status(404)
-      .json({
-        message: "Requested resource not found",
-        statusText: "Not Found",
-      });
+    return res.status(404).json({
+      message: "Requested resource not found",
+      statusText: "Not Found",
+    });
   }
 
   return res
@@ -35,6 +33,7 @@ const handleError = (err, res, context = "Something went wrong") => {
 };
 
 const sendSuccess = (res, statusCode = 200, data = {}, message = "Success") => {
+  console.log(statusCode);
   let statusText = "";
   switch (statusCode) {
     case 200:
@@ -50,14 +49,14 @@ const sendSuccess = (res, statusCode = 200, data = {}, message = "Success") => {
       statusText = "Success";
       statusCode = 200;
   }
-
+  console.log(statusCode, data);
   if (statusCode === 204) return res.status(204).json({});
 
   // If data is an array, send it directly (Postman expects a plain array)
   if (Array.isArray(data)) {
     return res.status(statusCode).json(data);
   }
-
+  console.log(data);
   // For objects, spread data and include message & statusText
   return res.status(statusCode).json({
     ...data,
