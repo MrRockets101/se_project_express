@@ -18,8 +18,7 @@ const createItem = (req, res) => {
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => {
-      // return sendSuccess(res, 200, items, "Items retrieved");
-      res.send(items);
+      return sendSuccess(res, 200, { data: items }, "Items retrieved");
     })
     .catch((err) => handleError(err, res, "Failed to fetch items"));
 };
@@ -71,6 +70,7 @@ const deleteItem = async (req, res) => {
     console.log(req.user._id);
     console.log(item.owner.toString());
     if (item.owner.toString() !== req.user._id) {
+      console.log(data);
       return res.status(403).json({
         status: 403,
         error: "Forbidden",
