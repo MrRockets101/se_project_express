@@ -18,7 +18,7 @@ const createItem = (req, res) => {
 const getItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => {
-      return sendSuccess(res, 200, { data: items }, "Items retrieved");
+      return sendSuccess(res, 200, items, "Items retrieved"); // send array directly
     })
     .catch((err) => handleError(err, res, "Failed to fetch items"));
 };
