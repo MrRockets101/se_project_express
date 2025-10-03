@@ -11,7 +11,7 @@ router.post("/signup", createUser);
 router.post("/signin", logIn);
 
 router.use(auth);
-router.get("/me", getCurrentUser);
-router.patch("/me", updateCurrentUser);
+router.get("/users", getCurrentUser);
+router.patch("/user", updateCurrentUser);
 
 module.exports = router;
