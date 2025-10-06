@@ -16,6 +16,12 @@ mongoose
 app.use(cors());
 app.use(express.json());
 
+// Add logging middleware here
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  next();
+});
+
 // Weather proxy route to fix CORS
 app.get("/api/weather", async (req, res) => {
   try {
@@ -37,7 +43,6 @@ app.get("/api/weather", async (req, res) => {
 });
 
 app.use("/", mainRouter);
-
 app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+  console.log(`Server listening on port ${PORT}`);
 });
