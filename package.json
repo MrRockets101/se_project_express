@@ -21,6 +21,7 @@
   "homepage": "https://github.com/MrRockets101/se_project_express#readme",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
