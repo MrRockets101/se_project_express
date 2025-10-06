@@ -52,7 +52,7 @@ const sendSuccess = (res, statusCode = 200, data = {}, message = "Success") => {
   console.log(statusCode, data);
   if (statusCode === 204) return res.status(204).json({});
 
-  // If data is an array, send it directly (Postman expects a plain array)
+  // If data is an array, send it directly
   if (Array.isArray(data)) {
     return res.status(statusCode).json(data);
   }

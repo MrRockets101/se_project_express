@@ -74,7 +74,7 @@ const getCurrentUser = (req, res) => {
     }
     console.log("Searching for user with _id:", user._id); // Debug
     User.findById(user._id)
-      .select("+password") // For visibility
+      .select("+password")
       .orFail()
       .then((userData) => {
         console.log("User found:", userData); // Debug
