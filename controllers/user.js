@@ -95,11 +95,16 @@ const getCurrentUser = (req, res) => {
 const updateCurrentUser = (req, res) => {
   const { name, avatar } = req.body;
 
-  User.findByIdAndUpdate(
-    req.user._id,
-    { name, avatar },
-    { new: true, runValidators: true, context: "query" }
-  )
+  // Only include fields that are actually sent
+  const updates = {};
+  if (name) updates.name = name;
+  if (avatar) updates.avatar = avatar;
+
+  User.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((user) => {
       if (!user) {
         return res.status(404).json({
