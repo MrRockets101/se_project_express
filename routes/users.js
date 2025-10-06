@@ -7,12 +7,10 @@ const {
 } = require("../controllers/user");
 const auth = require("../middlewares/auth");
 // no token require
-router.post("/signup", createUser);
-router.post("/signin", logIn);
 
 router.use(auth);
 // token required
-router.get("/users", getCurrentUser);
-router.patch("/users", updateCurrentUser);
+router.get("/me", getCurrentUser);
+router.patch("/me", updateCurrentUser);
 
 module.exports = router;
