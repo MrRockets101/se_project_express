@@ -8,16 +8,19 @@ const {
   unlikeItem,
 } = require("../controllers/clothingItems");
 const auth = require("../middlewares/auth");
-
+const {
+  validateCreateItem,
+  validateItemId,
+} = require("../middlewares/validation");
 // Public route
 router.get("/", getItems);
 
 // Protected routes
 router.use(auth);
-router.post("/", createItem);
-router.put("/:itemId", updateItem);
-router.delete("/:itemId", deleteItem);
-router.put("/:itemId/likes", likeItem);
-router.delete("/:itemId/likes", unlikeItem);
+router.post("/", validateCreateItem, createItem);
+router.put("/:itemId", validateItemId, updateItem);
+router.delete("/:itemId", validateItemId, deleteItem);
+router.put("/:itemId/likes", validateItemId, likeItem);
+router.delete("/:itemId/likes", validateItemId, unlikeItem);
 
 module.exports = router;
