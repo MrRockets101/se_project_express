@@ -10,3 +10,7 @@ Check out these videos, where I describe my project
 and some challenges I faced while building it:
 
 - [this video](https://drive.google.com/file/d/1P9EGCjxymTVQkz269mkLo4Q20jok90Vu/view?usp=drive_link)
+
+## Deployment Url
+
+- check out the platform at[ This Link](wtwrmrrockets101jumpingcrab.com)
