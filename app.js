@@ -16,7 +16,7 @@ mongoose
   .then(() => logger.info("Connected to wtwr_db")) // Use logger
   .catch((err) => logger.error(err));
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors());
 app.use(express.json());
 
 // Weather proxy route (no change)
